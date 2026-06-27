@@ -57,6 +57,8 @@ npm run dev
 
 ## GitHub Actions (self-hosted runner)
 
+Repositorio: [Verkku-Tech/zamora](https://github.com/Verkku-Tech/zamora)
+
 El workflow `.github/workflows/deploy-docker.yml` despliega automáticamente en push a `main`.
 
 ### Configurar secrets en GitHub
@@ -72,9 +74,18 @@ El workflow `.github/workflows/deploy-docker.yml` despliega automáticamente en 
 
 ### Instalar self-hosted runner
 
-1. En GitHub: **Settings → Actions → Runners → New self-hosted runner**
-2. Seguir instrucciones en el servidor de producción
-3. Asegurar que Docker y Docker Compose estén instalados
+1. En GitHub: [Verkku-Tech/zamora → Settings → Actions → Runners](https://github.com/Verkku-Tech/zamora/settings/actions/runners) → **New self-hosted runner**
+2. En el servidor `verkku`:
+
+```bash
+mkdir -p ~/actions-runner-zamora && cd ~/actions-runner-zamora
+# Descargar y extraer el runner (usa el enlace que GitHub muestra)
+./config.sh --url https://github.com/Verkku-Tech/zamora --token TU_TOKEN
+sudo ./svc.sh install sa
+sudo ./svc.sh start
+```
+
+3. Asegurar que Docker y Docker Compose estén instalados en el servidor.
 
 ## API endpoints
 
