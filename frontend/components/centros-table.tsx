@@ -2,6 +2,7 @@
 
 import { useState, Fragment } from 'react'
 import { PuntoInteres, POI_LABELS, Insumo, prioridadColores, prioridadNombres, categoriaNombres } from '@/lib/mock-data'
+import { calcularProgresoInsumo, formatCantidad, formatUnidad } from '@/lib/insumos-config'
 import { Button } from '@/components/ui/button'
 import { Edit2, Trash2, MapPin, Phone, ChevronDown, AlertCircle } from 'lucide-react'
 
@@ -47,10 +48,11 @@ function InsumosList({ insumos }: { insumos: Insumo[] }) {
         </div>
       )}
       {insumos.map((insumo) => {
-        const porcentaje =
-          insumo.cantidad_necesaria === 0
-            ? 0
-            : Math.round((insumo.cantidad_disponible / insumo.cantidad_necesaria) * 100)
+        const unidad = formatUnidad(insumo.unidad)
+        const progreso = calcularProgresoInsumo(
+          insumo.cantidad_disponible,
+          insumo.cantidad_necesaria,
+        )
         return (
           <div
             key={insumo.id}
@@ -59,7 +61,13 @@ function InsumosList({ insumos }: { insumos: Insumo[] }) {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground">{insumo.nombre}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {insumo.cantidad_disponible} / {insumo.cantidad_necesaria} {insumo.unidad}
+                Actual {formatCantidad(insumo.cantidad_disponible)} / Meta{' '}
+                {formatCantidad(insumo.cantidad_necesaria)} {unidad}
+                {progreso.faltante > 0 && (
+                  <span className="text-orange-500 ml-1">
+                    · Faltan {formatCantidad(progreso.faltante)} {unidad}
+                  </span>
+                )}
                 <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-muted">
                   {categoriaNombres[insumo.categoria]}
                 </span>
@@ -68,11 +76,11 @@ function InsumosList({ insumos }: { insumos: Insumo[] }) {
             <div className="flex items-center gap-2 shrink-0">
               <div className="flex-1 sm:w-24 h-2 bg-muted rounded-full overflow-hidden min-w-[80px]">
                 <div
-                  className={`h-full transition-all ${porcentaje >= 75 ? 'bg-green-500' : porcentaje >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                  style={{ width: `${Math.min(porcentaje, 100)}%` }}
+                  className={`h-full transition-all ${progreso.porcentaje >= 100 ? 'bg-green-500' : progreso.porcentaje >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                  style={{ width: `${Math.min(progreso.porcentaje, 100)}%` }}
                 />
               </div>
-              <span className="text-xs text-muted-foreground w-8 text-right">{porcentaje}%</span>
+              <span className="text-xs text-muted-foreground w-8 text-right">{progreso.porcentaje}%</span>
               <span
                 className={`px-2 py-0.5 rounded text-[10px] font-semibold ${prioridadColores[insumo.prioridad]} text-white`}
               >

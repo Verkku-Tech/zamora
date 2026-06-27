@@ -9,8 +9,13 @@ import {
   prioridadColores,
   prioridadNombres,
 } from '@/lib/mock-data'
-import { getCategoriasFromInsumos } from '@/lib/insumos-config'
-import { AlertCircle } from 'lucide-react'
+import {
+  calcularProgresoInsumo,
+  formatCantidad,
+  formatUnidad,
+  getCategoriasFromInsumos,
+} from '@/lib/insumos-config'
+import { AlertCircle, Target, Package } from 'lucide-react'
 
 interface SuppliesPanelProps {
   insumos: Insumo[]
@@ -35,18 +40,17 @@ export default function SuppliesPanel({ insumos, centroNombre, embedded = false 
     })
   }, [insumos, filtro])
 
-  const tieneCriticos = insumos.some((i) => i.prioridad === 'critica')
-
-  const calcularPorcentaje = (disponible: number, necesario: number) =>
-    necesario === 0 ? 0 : Math.round((disponible / necesario) * 100)
+  const tieneCriticos = insumos.some(
+    (i) => i.prioridad === 'critica' || calcularProgresoInsumo(i.cantidad_disponible, i.cantidad_necesaria).faltante > 0,
+  )
 
   if (insumos.length === 0) {
     return (
-      <div className={`flex flex-col h-full bg-card ${embedded ? '' : ''}`}>
+      <div className="flex flex-col h-full bg-card">
         {!embedded && (
           <div className="sticky top-0 bg-card border-b border-border p-4 z-10">
             <h2 className="font-semibold text-foreground text-lg truncate">{centroNombre}</h2>
-            <p className="text-sm text-muted-foreground mt-1">Inventario de insumos</p>
+            <p className="text-sm text-muted-foreground mt-1">Meta vs. inventario actual</p>
           </div>
         )}
         <div className="flex-1 flex items-center justify-center p-6 text-sm text-muted-foreground text-center">
@@ -57,23 +61,25 @@ export default function SuppliesPanel({ insumos, centroNombre, embedded = false 
   }
 
   return (
-    <div className={`flex flex-col h-full bg-card ${embedded ? '' : ''}`}>
+    <div className="flex flex-col h-full bg-card">
       {!embedded && (
         <div className="sticky top-0 bg-card border-b border-border p-4 z-10">
           <h2 className="font-semibold text-foreground text-lg truncate">{centroNombre}</h2>
-          <p className="text-sm text-muted-foreground mt-1">Inventario de insumos</p>
+          <p className="text-sm text-muted-foreground mt-1">Meta vs. inventario actual</p>
         </div>
       )}
 
-      {tieneCriticos && (
-        <div className="px-4 py-2 bg-red-50 dark:bg-red-900/20 flex items-center gap-2 border-b border-border shrink-0">
-          <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
-          <p className="text-xs font-semibold text-red-700 dark:text-red-300">Hay necesidades críticas</p>
-        </div>
-      )}
-
-      <div className="px-3 py-2 border-b border-border shrink-0 overflow-x-auto">
-        <div className="flex gap-1.5 min-w-max">
+      <div className="px-3 py-2 border-b border-border shrink-0">
+        <p className="text-[11px] text-muted-foreground mb-2">
+          Meta = lo que necesitamos · Actual = lo que tenemos hoy
+        </p>
+        {tieneCriticos && (
+          <div className="mb-2 px-2.5 py-1.5 bg-red-500/10 rounded-lg flex items-center gap-2">
+            <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+            <p className="text-[11px] font-medium text-red-500">Hay insumos por debajo de la meta</p>
+          </div>
+        )}
+        <div className="flex gap-1.5 flex-wrap">
           <button
             type="button"
             onClick={() => setFiltro('todas')}
@@ -102,77 +108,103 @@ export default function SuppliesPanel({ insumos, centroNombre, embedded = false 
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto min-h-0">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-card z-[1]">
-            <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              {filtro === 'todas' && <th className="px-3 py-2 font-medium">Categoría</th>}
-              <th className="px-3 py-2 font-medium">Producto</th>
-              <th className="px-3 py-2 font-medium text-right">Necesario</th>
-              <th className="px-3 py-2 font-medium text-right">Disponible</th>
-              <th className="px-3 py-2 font-medium">Unidad</th>
-              <th className="px-3 py-2 font-medium">Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {insumosFiltrados.map((insumo) => {
-              const porcentaje = calcularPorcentaje(
-                insumo.cantidad_disponible,
-                insumo.cantidad_necesaria,
-              )
-              const esCritico = porcentaje < 50
+      <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-3">
+        {insumosFiltrados.map((insumo) => {
+          const unidad = formatUnidad(insumo.unidad)
+          const progreso = calcularProgresoInsumo(
+            insumo.cantidad_disponible,
+            insumo.cantidad_necesaria,
+          )
+          const barWidth = Math.min(progreso.porcentaje, 100)
 
-              return (
-                <tr
-                  key={insumo.id}
-                  className={`border-b border-border last:border-0 ${
-                    esCritico ? 'bg-red-50/50 dark:bg-red-950/20' : ''
-                  }`}
-                >
+          return (
+            <div
+              key={insumo.id}
+              className={`rounded-xl border p-3 space-y-3 ${
+                progreso.faltante > 0
+                  ? 'border-orange-500/30 bg-orange-500/5'
+                  : 'border-border bg-secondary/20'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
                   {filtro === 'todas' && (
-                    <td className="px-3 py-2.5 align-top">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${categoriaColores[insumo.categoria]}`}
-                      >
-                        {categoriaNombres[insumo.categoria]}
-                      </span>
-                    </td>
-                  )}
-                  <td className="px-3 py-2.5 align-top">
-                    <p className="font-medium text-foreground">{insumo.nombre}</p>
                     <span
-                      className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold text-white ${prioridadColores[insumo.prioridad]}`}
+                      className={`inline-block mb-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold ${categoriaColores[insumo.categoria]}`}
                     >
-                      {prioridadNombres[insumo.prioridad]}
+                      {categoriaNombres[insumo.categoria]}
                     </span>
-                  </td>
-                  <td className="px-3 py-2.5 align-top text-right tabular-nums">
-                    {insumo.cantidad_necesaria}
-                  </td>
-                  <td className="px-3 py-2.5 align-top text-right tabular-nums font-medium">
-                    {insumo.cantidad_disponible}
-                  </td>
-                  <td className="px-3 py-2.5 align-top text-muted-foreground">{insumo.unidad}</td>
-                  <td className="px-3 py-2.5 align-top min-w-[5rem]">
-                    <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          porcentaje >= 75
-                            ? 'bg-green-500'
-                            : porcentaje >= 50
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
-                        }`}
-                        style={{ width: `${Math.min(porcentaje, 100)}%` }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1">{porcentaje}%</p>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                  )}
+                  <p className="font-semibold text-sm text-foreground leading-snug">{insumo.nombre}</p>
+                </div>
+                <span
+                  className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold text-white ${prioridadColores[insumo.prioridad]}`}
+                >
+                  {prioridadNombres[insumo.prioridad]}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-background/60 border border-border p-2.5">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+                    <Target className="w-3 h-3" />
+                    Meta
+                  </div>
+                  <p className="text-base font-bold tabular-nums leading-none">
+                    {formatCantidad(insumo.cantidad_necesaria)}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{unidad}</p>
+                </div>
+                <div className="rounded-lg bg-background/60 border border-border p-2.5">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+                    <Package className="w-3 h-3" />
+                    Actual
+                  </div>
+                  <p
+                    className={`text-base font-bold tabular-nums leading-none ${
+                      progreso.faltante > 0 ? 'text-orange-500' : 'text-green-500'
+                    }`}
+                  >
+                    {formatCantidad(insumo.cantidad_disponible)}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{unidad}</p>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                  <span>Cobertura de la meta</span>
+                  <span className="font-medium tabular-nums">{progreso.porcentaje}%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div
+                    className={`h-full transition-all ${
+                      progreso.porcentaje >= 100
+                        ? 'bg-green-500'
+                        : progreso.porcentaje >= 50
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                    }`}
+                    style={{ width: `${barWidth}%` }}
+                  />
+                </div>
+                <p className="text-[11px] mt-1.5 font-medium">
+                  {progreso.faltante > 0 ? (
+                    <span className="text-orange-500">
+                      Faltan {formatCantidad(progreso.faltante)} {unidad}
+                    </span>
+                  ) : progreso.excedente > 0 ? (
+                    <span className="text-green-500">
+                      Meta cubierta (+{formatCantidad(progreso.excedente)} {unidad})
+                    </span>
+                  ) : (
+                    <span className="text-green-500">Meta cubierta</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

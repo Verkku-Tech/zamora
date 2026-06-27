@@ -1,6 +1,62 @@
 import type { CategoriaInsumo, Insumo, PrioridadInsumo } from './mock-data'
 import { createInsumo, deleteInsumo, updateInsumo } from './api-client'
 
+export interface UnidadMedida {
+  value: string
+  label: string
+}
+
+/** Catálogo de unidades con etiquetas legibles */
+export const UNIDADES_MEDIDA: UnidadMedida[] = [
+  { value: 'Ltrs', label: 'Litros (Ltrs)' },
+  { value: 'mL', label: 'Mililitros (mL)' },
+  { value: 'mg', label: 'Miligramos (mg)' },
+  { value: 'g', label: 'Gramos (g)' },
+  { value: 'Kg', label: 'Kilogramos (Kg)' },
+  { value: 'unidades', label: 'Unidades' },
+  { value: 'cajas', label: 'Cajas' },
+  { value: 'paquetes', label: 'Paquetes' },
+  { value: 'frascos', label: 'Frascos' },
+  { value: 'ampollas', label: 'Ampollas' },
+  { value: 'botellas', label: 'Botellas' },
+  { value: 'bidones', label: 'Bidones' },
+  { value: 'galones', label: 'Galones' },
+  { value: 'latas', label: 'Latas' },
+  { value: 'pares', label: 'Pares' },
+  { value: 'juegos', label: 'Juegos' },
+]
+
+/** Normaliza valores antiguos guardados en BD (ej. "L" → "Ltrs") */
+const UNIDAD_ALIASES: Record<string, string> = {
+  L: 'Ltrs',
+  l: 'Ltrs',
+  ltr: 'Ltrs',
+  ltrs: 'Ltrs',
+  litros: 'Ltrs',
+  ml: 'mL',
+  ML: 'mL',
+  kg: 'Kg',
+  KG: 'Kg',
+}
+
+export function normalizeUnidad(unidad: string | null | undefined): string {
+  if (!unidad) return 'unidades'
+  const trimmed = unidad.trim()
+  return UNIDAD_ALIASES[trimmed] ?? trimmed
+}
+
+export function formatUnidad(unidad: string | null | undefined): string {
+  const normalized = normalizeUnidad(unidad)
+  const found = UNIDADES_MEDIDA.find((u) => u.value === normalized)
+  return found?.value ?? normalized
+}
+
+export function unidadLabel(unidad: string | null | undefined): string {
+  const normalized = normalizeUnidad(unidad)
+  const found = UNIDADES_MEDIDA.find((u) => u.value === normalized)
+  return found?.label ?? normalized
+}
+
 export const CATEGORIAS_INSUMO: CategoriaInsumo[] = [
   'alimentos',
   'medicinas',
@@ -10,19 +66,55 @@ export const CATEGORIAS_INSUMO: CategoriaInsumo[] = [
 ]
 
 export const unidadesPorCategoria: Record<CategoriaInsumo, string[]> = {
-  alimentos: ['kg', 'g', 'L', 'unidades', 'cajas', 'latas'],
-  medicinas: ['mg', 'ml', 'g', 'unidades', 'cajas', 'frascos', 'ampollas'],
-  agua: ['L', 'ml', 'galones', 'botellas', 'bidones'],
-  higiene: ['unidades', 'paquetes', 'L', 'ml', 'kg'],
-  ropa: ['unidades', 'pares', 'juegos', 'kg'],
+  alimentos: ['Kg', 'g', 'Ltrs', 'mL', 'unidades', 'cajas', 'latas'],
+  medicinas: ['mg', 'g', 'mL', 'Ltrs', 'unidades', 'cajas', 'frascos', 'ampollas'],
+  agua: ['Ltrs', 'mL', 'galones', 'botellas', 'bidones'],
+  higiene: ['unidades', 'paquetes', 'Ltrs', 'mL', 'Kg', 'g'],
+  ropa: ['unidades', 'pares', 'juegos', 'Kg'],
 }
 
 export const unidadDefaultPorCategoria: Record<CategoriaInsumo, string> = {
-  alimentos: 'kg',
+  alimentos: 'Kg',
   medicinas: 'unidades',
-  agua: 'L',
+  agua: 'Ltrs',
   higiene: 'unidades',
   ropa: 'unidades',
+}
+
+export function getUnidadesForCategoria(categoria: CategoriaInsumo): UnidadMedida[] {
+  return unidadesPorCategoria[categoria]
+    .map((value) => UNIDADES_MEDIDA.find((u) => u.value === value))
+    .filter((u): u is UnidadMedida => !!u)
+}
+
+export interface ProgresoInsumo {
+  porcentaje: number
+  faltante: number
+  excedente: number
+  metaCubierta: boolean
+}
+
+/** meta = lo que necesitamos | actual = lo que tenemos ahora */
+export function calcularProgresoInsumo(actual: number, meta: number): ProgresoInsumo {
+  if (meta <= 0) {
+    return {
+      porcentaje: actual > 0 ? 100 : 0,
+      faltante: 0,
+      excedente: actual,
+      metaCubierta: actual > 0,
+    }
+  }
+  const porcentaje = Math.round((actual / meta) * 100)
+  return {
+    porcentaje,
+    faltante: Math.max(0, meta - actual),
+    excedente: Math.max(0, actual - meta),
+    metaCubierta: actual >= meta,
+  }
+}
+
+export function formatCantidad(n: number): string {
+  return n.toLocaleString('es-VE')
 }
 
 export interface InsumoFormRow {
@@ -57,7 +149,7 @@ export function insumoToFormRow(insumo: Insumo): InsumoFormRow {
     prioridad: insumo.prioridad,
     cantidad_necesaria: insumo.cantidad_necesaria,
     cantidad_disponible: insumo.cantidad_disponible,
-    unidad: insumo.unidad || unidadDefaultPorCategoria[insumo.categoria],
+    unidad: normalizeUnidad(insumo.unidad) || unidadDefaultPorCategoria[insumo.categoria],
   }
 }
 
@@ -94,7 +186,7 @@ export async function syncInsumosForCentro(
       prioridad: row.prioridad,
       cantidadNecesaria: row.cantidad_necesaria,
       cantidadDisponible: row.cantidad_disponible,
-      unidad: row.unidad,
+      unidad: normalizeUnidad(row.unidad),
     }
 
     if (row.id) {

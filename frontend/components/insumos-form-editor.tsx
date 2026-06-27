@@ -12,6 +12,7 @@ import {
   CATEGORIAS_INSUMO,
   InsumoFormRow,
   createEmptyInsumoRow,
+  getUnidadesForCategoria,
   unidadDefaultPorCategoria,
   unidadesPorCategoria,
 } from '@/lib/insumos-config'
@@ -56,7 +57,7 @@ export default function InsumosFormEditor({ rows, onChange }: InsumosFormEditorP
         <div>
           <label className="text-sm font-medium">Inventario de insumos</label>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Agrega productos por categoría con cantidad y unidad de medida.
+            Define la <strong>meta</strong> (lo que necesitamos) y el <strong>actual</strong> (lo que tenemos hoy).
           </p>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={addRow} className="shrink-0 gap-1">
@@ -71,14 +72,20 @@ export default function InsumosFormEditor({ rows, onChange }: InsumosFormEditorP
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
                 <th className="px-2 py-2 font-medium">Categoría</th>
                 <th className="px-2 py-2 font-medium">Producto</th>
-                <th className="px-2 py-2 font-medium w-20">Necesario</th>
-                <th className="px-2 py-2 font-medium w-20">Disponible</th>
-                <th className="px-2 py-2 font-medium w-24">Unidad</th>
+                <th className="px-2 py-2 font-medium w-24">
+                  Meta
+                  <span className="block font-normal text-[10px]">Necesitamos</span>
+                </th>
+                <th className="px-2 py-2 font-medium w-24">
+                  Actual
+                  <span className="block font-normal text-[10px]">Tenemos</span>
+                </th>
+                <th className="px-2 py-2 font-medium w-36">Unidad</th>
                 <th className="px-2 py-2 font-medium w-24">Prioridad</th>
                 <th className="px-2 py-2 w-10" />
               </tr>
@@ -105,7 +112,7 @@ export default function InsumosFormEditor({ rows, onChange }: InsumosFormEditorP
                     <Input
                       value={row.nombre}
                       onChange={(e) => updateRow(row.tempId, { nombre: e.target.value })}
-                      placeholder="Ej. Arroz, Paracetamol..."
+                      placeholder="Ej. Agua, Arroz..."
                       className="h-9"
                     />
                   </td>
@@ -120,6 +127,7 @@ export default function InsumosFormEditor({ rows, onChange }: InsumosFormEditorP
                         })
                       }
                       className="h-9"
+                      title="Cantidad que necesitamos (meta)"
                     />
                   </td>
                   <td className="px-2 py-2 align-top">
@@ -133,6 +141,7 @@ export default function InsumosFormEditor({ rows, onChange }: InsumosFormEditorP
                         })
                       }
                       className="h-9"
+                      title="Cantidad que tenemos ahora"
                     />
                   </td>
                   <td className="px-2 py-2 align-top">
@@ -141,9 +150,9 @@ export default function InsumosFormEditor({ rows, onChange }: InsumosFormEditorP
                       onChange={(e) => updateRow(row.tempId, { unidad: e.target.value })}
                       className={selectClass}
                     >
-                      {unidadesPorCategoria[row.categoria].map((u) => (
-                        <option key={u} value={u}>
-                          {u}
+                      {getUnidadesForCategoria(row.categoria).map((u) => (
+                        <option key={u.value} value={u.value}>
+                          {u.label}
                         </option>
                       ))}
                     </select>
