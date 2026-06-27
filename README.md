@@ -14,21 +14,14 @@ Sistema de mapa interactivo, centros de acopio e insumos para el municipio Zamor
 ## Inicio rápido con Docker
 
 ```bash
-# 1. Copiar variables de entorno
-cp .env.example .env
-# Editar .env con contraseñas seguras
-
-# 2. Levantar todo el stack
 docker compose up -d --build
-
-# 3. Abrir en el navegador
-# http://localhost:8080
+# App en http://localhost:8080
 ```
 
-### Credenciales por defecto (cambiar en .env)
+### Credenciales (definidas en docker-compose.yml)
 
-- **Admin:** `admin@fuerzacivil.org` / valor de `ADMIN_PASSWORD` en `.env`
-- **Puerto:** `8080` (nginx proxy → frontend + API)
+- **Admin:** `admin@fuerzacivil.org` / `Zamora2026!`
+- **Puerto:** `8080`
 
 ## Desarrollo local
 
@@ -59,20 +52,9 @@ npm run dev
 
 Repositorio: [Verkku-Tech/zamora](https://github.com/Verkku-Tech/zamora)
 
-El workflow `.github/workflows/deploy-docker.yml` despliega automáticamente en push a `main`.
+El workflow `.github/workflows/deploy-docker.yml` despliega en push a `main`. **No requiere GitHub Secrets** — las variables están en `docker-compose.yml`.
 
-### Configurar secrets en GitHub
-
-| Secret | Descripción |
-|--------|-------------|
-| `POSTGRES_PASSWORD` | Contraseña de PostgreSQL |
-| `JWT_SECRET` | Clave JWT (mín. 32 caracteres) |
-| `ADMIN_EMAIL` | Email del administrador |
-| `ADMIN_PASSWORD` | Contraseña del administrador |
-| `PUBLIC_URL` | URL pública (ej. `https://fuerzacivil.example.com`) |
-| `WEB_PORT` | Puerto expuesto (default `8080`) |
-
-### Instalar self-hosted runner
+### Self-hosted runner (`vm-lguzman`)
 
 1. En GitHub: [Verkku-Tech/zamora → Settings → Actions → Runners](https://github.com/Verkku-Tech/zamora/settings/actions/runners) → **New self-hosted runner**
 2. En el servidor `verkku`:

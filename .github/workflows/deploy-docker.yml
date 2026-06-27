@@ -22,32 +22,6 @@ jobs:
           docker --version
           docker compose version
 
-      - name: Crear archivo .env
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
-          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
-          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
-          WEB_PORT: ${{ secrets.WEB_PORT }}
-        run: |
-          cat > .env << EOF
-          POSTGRES_USER=${POSTGRES_USER:-postgres}
-          POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD secret is required}
-          POSTGRES_DB=${POSTGRES_DB:-fuerzacivil}
-          JWT_SECRET=${JWT_SECRET:?JWT_SECRET secret is required}
-          JWT_ISSUER=${JWT_ISSUER:-fuerzacivil}
-          JWT_AUDIENCE=${JWT_AUDIENCE:-fuerzacivil-web}
-          ADMIN_EMAIL=${ADMIN_EMAIL:?ADMIN_EMAIL secret is required}
-          ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD secret is required}
-          PUBLIC_URL=${PUBLIC_URL:-http://localhost:8080}
-          WEB_PORT=${WEB_PORT:-8080}
-          EOF
-
       - name: Build imágenes
         run: docker compose build --pull
 
