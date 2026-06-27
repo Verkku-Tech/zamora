@@ -344,6 +344,9 @@ namespace FuerzaCivil.Api.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<Point>("Ubicacion")
+                        .HasColumnType("geography(Point, 4326)");
+
                     b.Property<string>("Unidad")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -362,6 +365,10 @@ namespace FuerzaCivil.Api.Migrations
                     b.HasIndex("PuntoInteresId");
 
                     b.HasIndex("Tipo");
+
+                    b.HasIndex("Ubicacion");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Ubicacion"), "GIST");
 
                     b.ToTable("solicitudes", (string)null);
                 });

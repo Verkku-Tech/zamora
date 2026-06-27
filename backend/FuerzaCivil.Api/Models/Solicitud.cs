@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NetTopologySuite.Geometries;
 
 namespace FuerzaCivil.Api.Models;
 
@@ -38,6 +39,10 @@ public class Solicitud
 
     [MaxLength(300)]
     public string? Direccion { get; set; }
+
+    /// <summary>Lugar donde se necesita el insumo o la inspección.</summary>
+    [Column(TypeName = "geography(Point, 4326)")]
+    public Point? Ubicacion { get; set; }
 
     [Required, MaxLength(20)]
     public string Prioridad { get; set; } = "media";

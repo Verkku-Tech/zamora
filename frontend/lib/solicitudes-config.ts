@@ -22,6 +22,8 @@ export interface Solicitud {
   solicitante: string
   telefono_solicitante: string
   direccion: string
+  latitud: number | null
+  longitud: number | null
   prioridad: PrioridadInsumo
   estado: EstadoSolicitud
   punto_interes_id: string | null

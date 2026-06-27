@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import PublicNavbar from '@/components/public-navbar'
+import AdminNavbar from '@/components/admin-navbar'
 import SolicitudFormDialog from '@/components/solicitud-form-dialog'
 import SolicitudesList from '@/components/solicitudes-list'
 import { LoadingState, ErrorState } from '@/components/loading-state'
@@ -102,7 +103,11 @@ export default function SolicitudesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PublicNavbar currentPage="solicitudes" />
+      {isAuthenticated ? (
+        <AdminNavbar currentPage="solicitudes" />
+      ) : (
+        <PublicNavbar currentPage="solicitudes" />
+      )}
 
       <main className="max-w-4xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

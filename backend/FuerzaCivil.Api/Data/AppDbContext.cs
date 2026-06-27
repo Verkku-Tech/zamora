@@ -54,6 +54,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Solicitud>(entity =>
         {
             entity.ToTable("solicitudes");
+            entity.HasIndex(e => e.Ubicacion).HasMethod("GIST");
             entity.HasIndex(e => e.Tipo);
             entity.HasIndex(e => e.Estado);
             entity.HasIndex(e => e.CreatedAt);

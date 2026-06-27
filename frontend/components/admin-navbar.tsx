@@ -26,6 +26,7 @@ export default function AdminNavbar({ currentPage = 'dashboard' }: AdminNavbarPr
     { href: '/admin/map', label: 'Mapa', icon: Map, page: 'map' as const },
     { href: '/admin/centros', label: 'Centros', icon: Package, page: 'centros' as const },
     { href: '/admin/donaciones', label: 'Donaciones', icon: Gift, page: 'donaciones' as const },
+    { href: '/solicitudes', label: 'Solicitudes', icon: ClipboardList, page: 'solicitudes' as const },
     { href: '/admin/settings', label: 'Configuración', icon: Settings, page: 'settings' as const },
     { href: '/admin/usuarios', label: 'Usuarios', icon: Users, page: 'usuarios' as const },
     { href: '/admin/roles', label: 'Roles', icon: Shield, page: 'roles' as const },

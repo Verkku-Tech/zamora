@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using FuerzaCivil.Api.Data;
 using FuerzaCivil.Api.DTOs;
 using FuerzaCivil.Api.Models;
@@ -89,9 +90,10 @@ public class SolicitudesController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Titulo))
             return BadRequest("El título es obligatorio");
 
-        var estado = dto.PuntoInteresId.HasValue || dto.InsumoId.HasValue
-            ? "ubicado"
-            : "pendiente";
+        if (dto.Latitud is < -90 or > 90 || dto.Longitud is < -180 or > 180)
+            return BadRequest("La ubicación en el mapa es obligatoria");
+
+        var estado = dto.InsumoId.HasValue ? "ubicado" : "pendiente";
 
         var puntoId = dto.PuntoInteresId;
         var insumoId = dto.InsumoId;
@@ -124,6 +126,7 @@ public class SolicitudesController : ControllerBase
             Solicitante = dto.Solicitante?.Trim(),
             TelefonoSolicitante = dto.TelefonoSolicitante?.Trim(),
             Direccion = dto.Direccion?.Trim(),
+            Ubicacion = new Point(dto.Longitud, dto.Latitud) { SRID = 4326 },
             Prioridad = dto.Prioridad?.Trim().ToLowerInvariant() ?? "media",
             Estado = estado,
             PuntoInteresId = puntoId,
@@ -156,6 +159,8 @@ public class SolicitudesController : ControllerBase
         if (dto.Solicitante is not null) entity.Solicitante = dto.Solicitante.Trim();
         if (dto.TelefonoSolicitante is not null) entity.TelefonoSolicitante = dto.TelefonoSolicitante.Trim();
         if (dto.Direccion is not null) entity.Direccion = dto.Direccion.Trim();
+        if (dto.Latitud.HasValue && dto.Longitud.HasValue)
+            entity.Ubicacion = new Point(dto.Longitud.Value, dto.Latitud.Value) { SRID = 4326 };
         if (dto.Prioridad is not null) entity.Prioridad = dto.Prioridad.Trim().ToLowerInvariant();
         if (dto.Estado is not null) entity.Estado = dto.Estado.Trim().ToLowerInvariant();
         if (dto.PuntoInteresId.HasValue) entity.PuntoInteresId = dto.PuntoInteresId;
@@ -190,6 +195,8 @@ public class SolicitudesController : ControllerBase
         s.Solicitante,
         s.TelefonoSolicitante,
         s.Direccion,
+        s.Ubicacion?.Y,
+        s.Ubicacion?.X,
         s.Prioridad,
         s.Estado,
         s.PuntoInteresId,

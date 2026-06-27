@@ -247,6 +247,8 @@ export interface SolicitudApi {
   solicitante: string | null
   telefonoSolicitante: string | null
   direccion: string | null
+  latitud: number | null
+  longitud: number | null
   prioridad: string
   estado: string
   puntoInteresId: string | null
@@ -283,6 +285,8 @@ export interface CreateSolicitudPayload {
   solicitante?: string
   telefonoSolicitante?: string
   direccion?: string
+  latitud: number
+  longitud: number
   prioridad?: string
   puntoInteresId?: string
   insumoId?: string
@@ -442,6 +446,8 @@ export function mapSolicitud(s: SolicitudApi): import('./solicitudes-config').So
     solicitante: s.solicitante ?? '',
     telefono_solicitante: s.telefonoSolicitante ?? '',
     direccion: s.direccion ?? '',
+    latitud: s.latitud,
+    longitud: s.longitud,
     prioridad: s.prioridad as import('./mock-data').PrioridadInsumo,
     estado: s.estado as import('./solicitudes-config').EstadoSolicitud,
     punto_interes_id: s.puntoInteresId,

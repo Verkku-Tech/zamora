@@ -101,33 +101,40 @@ export default function SolicitudesList({ solicitudes, onRefresh }: SolicitudesL
               </p>
             )}
 
-            {s.punto_nombre && (
-              <div className="flex items-center gap-2 text-xs">
-                <MapPin className="w-3.5 h-3.5 text-accent shrink-0" />
+            {s.punto_nombre && s.tipo === 'insumo' && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>
-                  {POI_ICONS[s.punto_tipo as TipoPuntoInteres] ?? '📍'}{' '}
-                  {s.punto_nombre}
-                  <span className="text-muted-foreground ml-1">
-                    ({POI_LABELS[s.punto_tipo as TipoPuntoInteres] ?? s.punto_tipo})
-                  </span>
+                  Insumo en centro: {POI_ICONS[s.punto_tipo as TipoPuntoInteres] ?? '📍'} {s.punto_nombre}
                 </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    router.push(`/admin/map?centro=${encodeURIComponent(s.punto_interes_id!)}`)
-                  }
-                  className="text-accent hover:underline ml-auto shrink-0"
-                >
-                  Ver en mapa
-                </button>
               </div>
             )}
 
-            {(s.solicitante || s.direccion) && (
+            {(s.latitud != null && s.longitud != null) || s.direccion ? (
+              <div className="flex items-center gap-2 text-xs">
+                <MapPin className="w-3.5 h-3.5 text-accent shrink-0" />
+                <span className="min-w-0">
+                  {s.direccion || `${s.latitud?.toFixed(5)}, ${s.longitud?.toFixed(5)}`}
+                </span>
+                {s.latitud != null && s.longitud != null && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        `/admin/map?lat=${encodeURIComponent(String(s.latitud))}&lng=${encodeURIComponent(String(s.longitud))}`,
+                      )
+                    }
+                    className="text-accent hover:underline ml-auto shrink-0"
+                  >
+                    Ver en mapa
+                  </button>
+                )}
+              </div>
+            ) : null}
+
+            {s.solicitante && (
               <p className="text-[11px] text-muted-foreground border-t border-border pt-2">
-                {s.solicitante && <>Solicitante: {s.solicitante}</>}
-                {s.solicitante && s.telefono_solicitante && ` · ${s.telefono_solicitante}`}
-                {s.direccion && <> · {s.direccion}</>}
+                Solicitante: {s.solicitante}
+                {s.telefono_solicitante && ` · ${s.telefono_solicitante}`}
               </p>
             )}
 
