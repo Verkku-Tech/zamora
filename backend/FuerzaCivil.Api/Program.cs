@@ -83,6 +83,10 @@ var app = builder.Build();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
+            var pending = db.Database.GetPendingMigrations().ToList();
+            if (pending.Count > 0)
+                logger.LogInformation("Aplicando migraciones pendientes: {Migrations}", string.Join(", ", pending));
+
             db.Database.Migrate();
             SeedData.Initialize(db);
             logger.LogInformation("Base de datos migrada e inicializada correctamente");
