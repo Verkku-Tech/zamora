@@ -87,9 +87,9 @@ sudo ./svc.sh start
 
 3. Asegurar que Docker y Docker Compose estén instalados en el servidor.
 
-> **Runner existente (`VerkkuRunner`):** si ya tienes uno en `~/actions-runner` registrado bajo otra cuenta, debes **re-apuntarlo** a `Verkku-Tech` (ver sección abajo).
+> **Runner configurado:** `vm-lguzman` — el workflow apunta a `[self-hosted, Linux, X64, vm-lguzman]`.
 
-### Reutilizar tu runner `VerkkuRunner` en verkku
+### Reconfigurar runner en verkku (si hace falta)
 
 Tu servicio actual escucha jobs de **`luigiguz-AtlasVPN`**, no de **`Verkku-Tech/zamora`**. Hay que reconfigurarlo:
 
@@ -104,14 +104,14 @@ sudo ./svc.sh stop
 # https://github.com/Verkku-Tech/zamora/settings/actions/runners/new
 # (o a nivel org: https://github.com/organizations/Verkku-Tech/settings/actions/runners/new)
 
-./config.sh --url https://github.com/Verkku-Tech/zamora --token TU_TOKEN_NUEVO --name VerkkuRunner
+./config.sh --url https://github.com/Verkku-Tech/zamora --token TU_TOKEN_NUEVO --name vm-lguzman
 
 sudo ./svc.sh install sa
 sudo ./svc.sh start
 sudo ./svc.sh status
 ```
 
-Verifica en [Verkku-Tech/zamora → Runners](https://github.com/Verkku-Tech/zamora/settings/actions/runners) que aparece **VerkkuRunner** en estado **Idle**.
+Verifica en [Verkku-Tech/zamora → Runners](https://github.com/Verkku-Tech/zamora/settings/actions/runners) que aparece **vm-lguzman** en estado **Idle**.
 
 ## API endpoints
 
