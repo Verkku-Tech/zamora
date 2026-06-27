@@ -85,6 +85,7 @@ export default function Page() {
           config={config}
           hideLegend={!!selectedPoi}
           reportPickMode={reportPickMode}
+          pickHint="Selecciona la zona afectada en el mapa"
           onMapPick={handleMapPick}
           onReportPickCancel={cancelReportPick}
           pickMarker={reportCoords}
