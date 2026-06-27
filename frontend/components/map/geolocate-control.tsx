@@ -36,7 +36,7 @@ export default function GeolocateControl() {
     <button
       onClick={handleGeolocate}
       disabled={locating}
-      className="absolute top-20 right-4 z-30 bg-card border border-border rounded-lg shadow-lg p-2 hover:bg-secondary transition-colors disabled:opacity-50"
+      className="absolute top-3 right-3 md:top-20 md:right-4 z-30 bg-card border border-border rounded-lg shadow-lg p-2 hover:bg-secondary transition-colors disabled:opacity-50"
       title="Mi ubicación"
     >
       <Crosshair className={`w-5 h-5 ${locating ? 'text-accent animate-pulse' : 'text-foreground'}`} />

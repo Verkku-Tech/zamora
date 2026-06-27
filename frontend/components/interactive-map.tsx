@@ -15,6 +15,7 @@ interface InteractiveMapProps {
   zonas: ZonaAfectada[]
   config?: ConfigApp
   onPoiClick?: (punto: PuntoInteres) => void
+  hideLegend?: boolean
 }
 
 const HEATMAP_SOURCE = 'zonas-afectadas-source'
@@ -31,7 +32,7 @@ function buildHeatmapGeoJSON(zonas: ZonaAfectada[]): GeoJSON.FeatureCollection {
   }
 }
 
-export default function InteractiveMap({ puntos, zonas, config = CONFIG_APP, onPoiClick }: InteractiveMapProps) {
+export default function InteractiveMap({ puntos, zonas, config = CONFIG_APP, onPoiClick, hideLegend = false }: InteractiveMapProps) {
   const mapRef = useRef<MapRef>(null)
   const heatmapAddedRef = useRef(false)
   const geolocatedRef = useRef(false)
@@ -131,8 +132,8 @@ export default function InteractiveMap({ puntos, zonas, config = CONFIG_APP, onP
         <NavigationControl position="top-left" />
         <GeolocateControl />
       </Map>
-      <Legend />
-      <div className="absolute bottom-4 right-4 text-[10px] text-muted-foreground/60 bg-card/80 px-2 py-1 rounded z-30">
+      <Legend hidden={hideLegend} />
+      <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 text-[9px] md:text-[10px] text-muted-foreground/60 bg-card/80 px-1.5 py-0.5 rounded z-20 pointer-events-none">
         © OpenFreeMap
       </div>
     </div>
