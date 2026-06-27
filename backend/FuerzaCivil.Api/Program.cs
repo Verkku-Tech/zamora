@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using FuerzaCivil.Api.Data;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,33 +73,49 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    // DB ya está healthy vía depends_on; reintentos cortos por si acaso
     const int maxRetries = 10;
     for (var attempt = 1; attempt <= maxRetries; attempt++)
     {
         try
         {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
             db.Database.Migrate();
             SeedData.Initialize(db);
             logger.LogInformation("Base de datos migrada e inicializada correctamente");
             break;
         }
-        catch (Exception ex) when (attempt < maxRetries)
+        catch (Exception ex) when (attempt < maxRetries && IsTransientDbError(ex))
         {
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
             logger.LogWarning(ex, "DB no lista (intento {Attempt}/{Max}), reintentando en 2s...", attempt, maxRetries);
             Thread.Sleep(TimeSpan.FromSeconds(2));
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "No se pudo migrar la base de datos tras {Max} intentos", maxRetries);
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+            logger.LogCritical(ex, "No se pudo migrar o inicializar la base de datos");
             throw;
         }
     }
+}
+
+static bool IsTransientDbError(Exception ex)
+{
+    for (var current = ex; current is not null; current = current.InnerException)
+    {
+        if (current is PostgresException pg)
+        {
+            // Conexión rechazada, too many connections, etc.
+            return pg.SqlState is "57P01" or "53300" or "08000" or "08003" or "08006" or "08001";
+        }
+        if (current is NpgsqlException)
+            return true;
+    }
+    return false;
 }
 
 if (app.Environment.IsDevelopment())
