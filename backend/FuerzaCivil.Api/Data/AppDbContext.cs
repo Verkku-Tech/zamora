@@ -11,9 +11,14 @@ public class AppDbContext : DbContext
     public DbSet<Insumo> Insumos => Set<Insumo>();
     public DbSet<ZonaAfectada> ZonasAfectadas => Set<ZonaAfectada>();
     public DbSet<ConfigApp> ConfigApp => Set<ConfigApp>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<UserPuntoInteres> UserPuntosInteres => Set<UserPuntoInteres>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("postgis");
+
         modelBuilder.Entity<PuntoInteres>(entity =>
         {
             entity.ToTable("puntos_interes");
@@ -44,6 +49,33 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
         });
 
-        modelBuilder.HasPostgresExtension("postgis");
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("users");
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasOne(e => e.Role)
+                  .WithMany(r => r.Users)
+                  .HasForeignKey(e => e.RoleId);
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.ToTable("roles");
+            entity.HasIndex(e => e.Nombre).IsUnique();
+        });
+
+        modelBuilder.Entity<UserPuntoInteres>(entity =>
+        {
+            entity.ToTable("user_pois");
+            entity.HasKey(e => new { e.UserId, e.PuntoInteresId });
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.UserPuntosInteres)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.PuntoInteres)
+                  .WithMany()
+                  .HasForeignKey(e => e.PuntoInteresId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

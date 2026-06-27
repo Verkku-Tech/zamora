@@ -1,12 +1,75 @@
+using System.Text.Json;
 using NetTopologySuite.Geometries;
+using Microsoft.Extensions.Configuration;
 using FuerzaCivil.Api.Models;
 
 namespace FuerzaCivil.Api.Data;
 
 public static class SeedData
 {
-    public static void Initialize(AppDbContext db)
+    public static void Initialize(AppDbContext db, IConfiguration config)
     {
+        if (!db.Roles.Any())
+        {
+            var permisosSistema = JsonSerializer.Serialize(new Dictionary<string, string[]>
+            {
+                ["Insumos"] = new[] { "ver", "crear", "editar", "eliminar" },
+                ["PuntosInteres"] = new[] { "ver", "crear", "editar", "eliminar" },
+                ["ZonasAfectadas"] = new[] { "ver", "crear", "editar", "eliminar" },
+                ["Estadisticas"] = new[] { "ver" },
+                ["Configuracion"] = new[] { "ver", "editar" },
+                ["Usuarios"] = new[] { "ver", "crear", "editar", "eliminar" },
+            });
+
+            var permisosAdmin = JsonSerializer.Serialize(new Dictionary<string, string[]>
+            {
+                ["Insumos"] = new[] { "ver", "crear", "editar", "eliminar" },
+                ["PuntosInteres"] = new[] { "ver", "crear", "editar", "eliminar" },
+                ["ZonasAfectadas"] = new[] { "ver", "crear", "editar", "eliminar" },
+                ["Estadisticas"] = new[] { "ver" },
+                ["Configuracion"] = new[] { "ver" },
+            });
+
+            var permisosPublico = JsonSerializer.Serialize(new Dictionary<string, string[]>
+            {
+                ["Insumos"] = new[] { "ver" },
+                ["PuntosInteres"] = new[] { "ver" },
+                ["ZonasAfectadas"] = new[] { "ver" },
+                ["Estadisticas"] = new[] { "ver" },
+                ["Configuracion"] = new[] { "ver" },
+            });
+
+            var permisosVoluntario = JsonSerializer.Serialize(new Dictionary<string, string[]>
+            {
+                ["Insumos"] = new[] { "ver", "crear", "editar" },
+                ["PuntosInteres"] = new[] { "ver" },
+                ["ZonasAfectadas"] = new[] { "ver" },
+                ["Estadisticas"] = new[] { "ver" },
+            });
+
+            var sistemaRol = new Role { Id = Guid.Parse("a0000000-0000-0000-0000-000000000001"), Nombre = "Sistema", AccesoGlobal = true, Permisos = permisosSistema };
+            var adminRol = new Role { Id = Guid.Parse("a0000000-0000-0000-0000-000000000002"), Nombre = "Administrador", AccesoGlobal = false, Permisos = permisosAdmin };
+            var publicoRol = new Role { Id = Guid.Parse("a0000000-0000-0000-0000-000000000003"), Nombre = "Personal Público", AccesoGlobal = true, Permisos = permisosPublico };
+            var voluntarioRol = new Role { Id = Guid.Parse("a0000000-0000-0000-0000-000000000004"), Nombre = "Voluntario", AccesoGlobal = false, Permisos = permisosVoluntario };
+
+            db.Roles.AddRange(sistemaRol, adminRol, publicoRol, voluntarioRol);
+
+            var adminPassword = config["Seed:AdminPassword"] ?? "Zamora2026!";
+            var adminEmail = config["Seed:AdminEmail"] ?? "admin@fuerzacivil.org";
+
+            db.Users.Add(new User
+            {
+                Id = Guid.Parse("b0000000-0000-0000-0000-000000000001"),
+                Email = adminEmail,
+                Nombre = "Administrador del Sistema",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
+                RoleId = sistemaRol.Id,
+                Activo = true,
+            });
+
+            db.SaveChanges();
+        }
+
         if (db.PuntosInteres.Any()) return;
 
         db.PuntosInteres.AddRange(

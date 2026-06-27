@@ -4,16 +4,16 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Menu, X, LogOut, Map, Settings, BarChart3, Package } from 'lucide-react'
+import { Menu, X, LogOut, Map, Settings, BarChart3, Package, Users, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface AdminNavbarProps {
-  currentPage?: 'dashboard' | 'map' | 'centros' | 'settings'
+  currentPage?: 'dashboard' | 'map' | 'centros' | 'settings' | 'usuarios' | 'roles'
 }
 
 export default function AdminNavbar({ currentPage = 'dashboard' }: AdminNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { logout, userEmail } = useAuth()
+  const { logout, userEmail, role } = useAuth()
   const router = useRouter()
 
   const handleLogout = () => {
@@ -26,6 +26,8 @@ export default function AdminNavbar({ currentPage = 'dashboard' }: AdminNavbarPr
     { href: '/admin/map', label: 'Mapa', icon: Map, page: 'map' as const },
     { href: '/admin/centros', label: 'Centros', icon: Package, page: 'centros' as const },
     { href: '/admin/settings', label: 'Configuración', icon: Settings, page: 'settings' as const },
+    { href: '/admin/usuarios', label: 'Usuarios', icon: Users, page: 'usuarios' as const },
+    { href: '/admin/roles', label: 'Roles', icon: Shield, page: 'roles' as const },
   ]
 
   return (
@@ -90,7 +92,7 @@ export default function AdminNavbar({ currentPage = 'dashboard' }: AdminNavbarPr
           <div className="hidden md:flex items-center gap-2">
             <div className="text-right">
               <p className="text-sm font-medium text-sidebar-foreground">{userEmail}</p>
-              <p className="text-xs text-sidebar-accent-foreground">Coordinador</p>
+              <p className="text-xs text-sidebar-accent-foreground">{role || 'Usuario'}</p>
             </div>
           </div>
 

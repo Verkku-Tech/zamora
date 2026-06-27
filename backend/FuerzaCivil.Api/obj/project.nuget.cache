@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "zyUjl7haKb4=",
+  "dgSpecHash": "DU50Kv0jCh4=",
   "success": true,
   "projectFilePath": "F:\\Verkku\\FuerzaCivil\\backend\\FuerzaCivil.Api\\FuerzaCivil.Api.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Saydenier\\.nuget\\packages\\aspnetcore.healthchecks.npgsql\\9.0.0\\aspnetcore.healthchecks.npgsql.9.0.0.nupkg.sha512",
+    "C:\\Users\\Saydenier\\.nuget\\packages\\bcrypt.net-next\\4.2.0\\bcrypt.net-next.4.2.0.nupkg.sha512",
     "C:\\Users\\Saydenier\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Saydenier\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.9\\microsoft.aspnetcore.authentication.jwtbearer.10.0.9.nupkg.sha512",
     "C:\\Users\\Saydenier\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.9\\microsoft.aspnetcore.openapi.10.0.9.nupkg.sha512",

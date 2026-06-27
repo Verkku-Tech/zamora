@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FuerzaCivil.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed666f3b162903914ccb021167422dfdcc1ecd44")]
 [assembly: System.Reflection.AssemblyProductAttribute("FuerzaCivil.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FuerzaCivil.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
