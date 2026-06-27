@@ -38,7 +38,11 @@ function buildHeatmapGeoJSON(zonas: ZonaAfectada[]): GeoJSON.FeatureCollection {
     type: 'FeatureCollection',
     features: zonas.map((z) => ({
       type: 'Feature' as const,
-      properties: { intensidad: z.intensidad, descripcion: z.descripcion },
+      properties: {
+        intensidad: z.intensidad,
+        radio_km: z.radio_km,
+        descripcion: z.descripcion,
+      },
       geometry: { type: 'Point' as const, coordinates: [z.longitud, z.latitud] },
     })),
   }
@@ -52,23 +56,28 @@ function addHeatmapLayer(map: MapLibreMap, zonas: ZonaAfectada[]) {
   })
   map.addLayer({
     id: HEATMAP_LAYER,
-    type: 'heatmap',
+    type: 'circle',
     source: HEATMAP_SOURCE,
     paint: {
-      'heatmap-weight': ['get', 'intensidad'],
-      'heatmap-intensity': 1,
-      'heatmap-color': [
-        'interpolate',
-        ['linear'],
-        ['heatmap-density'],
-        0, 'rgba(0, 0, 0, 0)',
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        10, ['*', ['get', 'radio_km'], 6.65],
+        12, ['*', ['get', 'radio_km'], 26.6],
+        14, ['*', ['get', 'radio_km'], 106.4],
+        16, ['*', ['get', 'radio_km'], 425.7],
+        18, ['*', ['get', 'radio_km'], 1703],
+      ],
+      'circle-color': [
+        'interpolate', ['linear'], ['get', 'intensidad'],
+        0.0, 'rgba(0, 0, 0, 0)',
         0.25, 'rgba(0, 200, 0, 0.6)',
         0.5, 'rgba(255, 255, 50, 0.7)',
         0.75, 'rgba(255, 140, 0, 0.8)',
-        1, 'rgba(220, 30, 30, 0.9)',
+        1.0, 'rgba(220, 30, 30, 0.85)',
       ],
-      'heatmap-radius': 20,
-      'heatmap-opacity': 0.8,
+      'circle-opacity': 0.7,
+      'circle-blur': 0.5,
+      'circle-stroke-width': 0,
     },
   })
 }
