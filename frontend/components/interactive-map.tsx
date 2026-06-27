@@ -22,6 +22,7 @@ interface InteractiveMapProps {
   onReportPickCancel?: () => void
   pickMarker?: { lat: number; lng: number } | null
   onReportClick?: () => void
+  sidePanelOpen?: boolean
 }
 
 const HEATMAP_SOURCE = 'zonas-afectadas-source'
@@ -79,6 +80,7 @@ export default function InteractiveMap({
   onReportPickCancel,
   pickMarker = null,
   onReportClick,
+  sidePanelOpen = false,
 }: InteractiveMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapRef>(null)
@@ -222,7 +224,10 @@ export default function InteractiveMap({
 
       {reportPickMode && (
         <div className="absolute top-2 inset-x-2 z-50 flex items-center gap-2 bg-orange-500 text-white rounded-xl px-3 py-2.5 shadow-lg text-sm">
-          <span className="flex-1 font-medium">Toca el mapa donde está la zona afectada</span>
+          <span className="flex-1 font-medium">
+            <span className="md:hidden">Toca el mapa donde está la zona afectada</span>
+            <span className="hidden md:inline">Haz clic en el mapa donde está la zona afectada</span>
+          </span>
           <button
             type="button"
             onClick={onReportPickCancel}
@@ -240,6 +245,7 @@ export default function InteractiveMap({
           onGeolocate={handleGeolocate}
           locating={locating}
           reportActive={reportPickMode}
+          sidePanelOpen={sidePanelOpen}
         />
       )}
 

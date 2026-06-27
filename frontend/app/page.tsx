@@ -89,6 +89,7 @@ export default function Page() {
           onReportPickCancel={cancelReportPick}
           pickMarker={reportCoords}
           onReportClick={startReport}
+          sidePanelOpen={!!selectedPoi && !reportPickMode}
           onPoiClick={(poi) => {
             setSelectedPoiId(poi.id)
             setShowSupplies(false)

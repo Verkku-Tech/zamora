@@ -6,6 +6,7 @@ import { useEffect, useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import AdminNavbar from '@/components/admin-navbar'
 import PoiDetailSheet from '@/components/map/poi-detail-sheet'
+import ReporteDialog from '@/components/reporte-dialog'
 import { LoadingState, ErrorState } from '@/components/loading-state'
 import { useAppData } from '@/lib/hooks/use-app-data'
 
@@ -21,6 +22,9 @@ function AdminMapContent() {
   const { puntos, zonas, insumosByCentro, config, loading, error, refresh } = useAppData()
   const [selectedPoiId, setSelectedPoiId] = useState<string | null>(null)
   const [showSupplies, setShowSupplies] = useState(false)
+  const [reportPickMode, setReportPickMode] = useState(false)
+  const [reportCoords, setReportCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [showReporteForm, setShowReporteForm] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/login')
@@ -35,6 +39,30 @@ function AdminMapContent() {
   }, [searchParams, puntos])
 
   const selectedPoi = selectedPoiId ? puntos.find((p) => p.id === selectedPoiId) ?? null : null
+
+  const startReport = () => {
+    setReportPickMode(true)
+    setShowReporteForm(false)
+    setReportCoords(null)
+    setSelectedPoiId(null)
+    setShowSupplies(false)
+  }
+
+  const cancelReportPick = () => {
+    setReportPickMode(false)
+    setReportCoords(null)
+  }
+
+  const handleMapPick = (lat: number, lng: number) => {
+    setReportCoords({ lat, lng })
+    setReportPickMode(false)
+    setShowReporteForm(true)
+  }
+
+  const handleReportDone = () => {
+    setReportCoords(null)
+    refresh()
+  }
 
   if (!isAuthenticated) return null
 
@@ -66,13 +94,19 @@ function AdminMapContent() {
           zonas={zonas}
           config={config}
           hideLegend={!!selectedPoi}
+          reportPickMode={reportPickMode}
+          onMapPick={handleMapPick}
+          onReportPickCancel={cancelReportPick}
+          pickMarker={reportCoords}
+          onReportClick={startReport}
+          sidePanelOpen={!!selectedPoi && !reportPickMode}
           onPoiClick={(poi) => {
             setSelectedPoiId(poi.id)
             setShowSupplies(false)
           }}
         />
 
-        {selectedPoi && (
+        {selectedPoi && !reportPickMode && (
           <PoiDetailSheet
             poi={selectedPoi}
             insumos={insumosByCentro[selectedPoi.id] || []}
@@ -85,6 +119,19 @@ function AdminMapContent() {
           />
         )}
       </div>
+
+      {showReporteForm && reportCoords && (
+        <ReporteDialog
+          open={showReporteForm}
+          onClose={() => {
+            setShowReporteForm(false)
+            setReportCoords(null)
+          }}
+          onReported={handleReportDone}
+          latitud={reportCoords.lat}
+          longitud={reportCoords.lng}
+        />
+      )}
     </div>
   )
 }
