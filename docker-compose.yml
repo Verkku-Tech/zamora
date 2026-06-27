@@ -32,7 +32,8 @@ services:
       Jwt__Audience: fuerzacivil-web
       Admin__Email: admin@fuerzacivil.org
       Admin__Password: Zamora2026!
-      Cors__Origins__0: http://localhost:8080
+      Cors__Origins__0: https://zamora.verkku.com
+      Cors__Origins__1: http://localhost:8080
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
       interval: 10s
