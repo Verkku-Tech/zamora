@@ -56,20 +56,19 @@ function addHeatmapLayer(map: MapLibreMap, zonas: ZonaAfectada[]) {
     source: HEATMAP_SOURCE,
     paint: {
       'heatmap-weight': ['get', 'intensidad'],
-      'heatmap-intensity': 0.6,
+      'heatmap-intensity': 1,
       'heatmap-color': [
         'interpolate',
         ['linear'],
         ['heatmap-density'],
-        0, 'rgba(0, 255, 0, 0)',
-        0.2, 'rgba(0, 255, 0, 0.5)',
-        0.4, 'rgba(255, 255, 0, 0.6)',
-        0.6, 'rgba(255, 165, 0, 0.7)',
-        0.8, 'rgba(255, 0, 0, 0.8)',
-        1, 'rgba(139, 0, 0, 0.9)',
+        0, 'rgba(0, 200, 0, 0.3)',
+        0.25, 'rgba(255, 255, 50, 0.6)',
+        0.5, 'rgba(255, 165, 0, 0.75)',
+        0.75, 'rgba(220, 40, 40, 0.85)',
+        1, 'rgba(160, 10, 10, 0.9)',
       ],
-      'heatmap-radius': 40,
-      'heatmap-opacity': 0.7,
+      'heatmap-radius': 20,
+      'heatmap-opacity': 0.8,
     },
   })
 }
