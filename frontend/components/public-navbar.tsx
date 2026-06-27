@@ -1,17 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { Map, Package, LogIn } from 'lucide-react'
+import { Map, Package, LogIn, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface PublicNavbarProps {
-  currentPage?: 'mapa' | 'centros'
+  currentPage?: 'mapa' | 'centros' | 'solicitudes'
 }
 
 export default function PublicNavbar({ currentPage }: PublicNavbarProps) {
   const navItems = [
     { href: '/', label: 'Mapa', icon: Map, page: 'mapa' as const },
     { href: '/centros', label: 'Centros', icon: Package, page: 'centros' as const },
+    { href: '/solicitudes', label: 'Solicitudes', icon: ClipboardList, page: 'solicitudes' as const },
   ]
 
   return (
