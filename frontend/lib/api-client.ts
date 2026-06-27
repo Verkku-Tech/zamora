@@ -321,6 +321,110 @@ export function deleteSolicitud(id: string) {
   return request<void>(`/Solicitudes/${id}`, { method: 'DELETE' })
 }
 
+// ── Users ──
+
+export interface UserApi {
+  id: string
+  email: string
+  nombre: string
+  roleId: string
+  roleNombre: string | null
+  activo: boolean
+  puntosInteresIds: string[]
+  createdAt: string
+}
+
+export interface CreateUserPayload {
+  email: string
+  nombre: string
+  password: string
+  roleId: string
+  puntosInteresIds?: string[]
+}
+
+export interface UpdateUserPayload {
+  nombre?: string
+  password?: string
+  roleId?: string
+  activo?: boolean
+  puntosInteresIds?: string[]
+}
+
+export function getUsers() {
+  return request<UserApi[]>('/Users')
+}
+
+export function getUser(id: string) {
+  return request<UserApi>(`/Users/${id}`)
+}
+
+export function createUser(data: CreateUserPayload) {
+  return request<UserApi>('/Users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateUser(id: string, data: UpdateUserPayload) {
+  return request<UserApi>(`/Users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteUser(id: string) {
+  return request<void>(`/Users/${id}`, { method: 'DELETE' })
+}
+
+// ── Roles ──
+
+export interface RoleApi {
+  id: string
+  nombre: string
+  accesoGlobal: boolean
+  permisos: Record<string, string[]>
+}
+
+export interface CreateRolePayload {
+  nombre: string
+  accesoGlobal: boolean
+  permisos: Record<string, string[]>
+}
+
+export interface UpdateRolePayload {
+  nombre?: string
+  accesoGlobal?: boolean
+  permisos?: Record<string, string[]>
+}
+
+export function getRoles() {
+  return request<RoleApi[]>('/Roles')
+}
+
+export function getRole(id: string) {
+  return request<RoleApi>(`/Roles/${id}`)
+}
+
+export function createRole(data: CreateRolePayload) {
+  return request<RoleApi>('/Roles', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateRole(id: string, data: UpdateRolePayload) {
+  return request<RoleApi>(`/Roles/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteRole(id: string) {
+  return request<void>(`/Roles/${id}`, { method: 'DELETE' })
+}
+
+// ── Mappers ──
+
 export function mapSolicitud(s: SolicitudApi): import('./solicitudes-config').Solicitud {
   return {
     id: s.id,

@@ -118,94 +118,6 @@ namespace FuerzaCivil.Api.Migrations
                     b.ToTable("donaciones", (string)null);
                 });
 
-            modelBuilder.Entity("FuerzaCivil.Api.Models.Solicitud", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int?>("CantidadSolicitada")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Categoria")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Descripcion")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("Direccion")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<Guid?>("InsumoId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("NotasInternas")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Prioridad")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("ProductoNombre")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid?>("PuntoInteresId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Solicitante")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("TelefonoSolicitante")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Unidad")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("Estado");
-
-                    b.HasIndex("InsumoId");
-
-                    b.HasIndex("PuntoInteresId");
-
-                    b.HasIndex("Tipo");
-
-                    b.ToTable("solicitudes", (string)null);
-                });
-
             modelBuilder.Entity("FuerzaCivil.Api.Models.Insumo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -334,6 +246,184 @@ namespace FuerzaCivil.Api.Migrations
                     b.ToTable("puntos_interes", (string)null);
                 });
 
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AccesoGlobal")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Permisos")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("roles", (string)null);
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Solicitud", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CantidadSolicitada")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Categoria")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("InsumoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NotasInternas")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Prioridad")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ProductoNombre")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("PuntoInteresId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Solicitante")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TelefonoSolicitante")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Unidad")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("InsumoId");
+
+                    b.HasIndex("PuntoInteresId");
+
+                    b.HasIndex("Tipo");
+
+                    b.ToTable("solicitudes", (string)null);
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.UserPuntoInteres", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PuntoInteresId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserId", "PuntoInteresId");
+
+                    b.HasIndex("PuntoInteresId");
+
+                    b.ToTable("user_pois", (string)null);
+                });
+
             modelBuilder.Entity("FuerzaCivil.Api.Models.ZonaAfectada", b =>
                 {
                     b.Property<Guid>("Id")
@@ -392,6 +482,17 @@ namespace FuerzaCivil.Api.Migrations
                     b.Navigation("PuntoInteres");
                 });
 
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Insumo", b =>
+                {
+                    b.HasOne("FuerzaCivil.Api.Models.PuntoInteres", "PuntoInteres")
+                        .WithMany("Insumos")
+                        .HasForeignKey("PuntoInteresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PuntoInteres");
+                });
+
             modelBuilder.Entity("FuerzaCivil.Api.Models.Solicitud", b =>
                 {
                     b.HasOne("FuerzaCivil.Api.Models.Insumo", "Insumo")
@@ -409,20 +510,49 @@ namespace FuerzaCivil.Api.Migrations
                     b.Navigation("PuntoInteres");
                 });
 
-            modelBuilder.Entity("FuerzaCivil.Api.Models.Insumo", b =>
+            modelBuilder.Entity("FuerzaCivil.Api.Models.User", b =>
+                {
+                    b.HasOne("FuerzaCivil.Api.Models.Role", "Role")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.UserPuntoInteres", b =>
                 {
                     b.HasOne("FuerzaCivil.Api.Models.PuntoInteres", "PuntoInteres")
-                        .WithMany("Insumos")
+                        .WithMany()
                         .HasForeignKey("PuntoInteresId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("FuerzaCivil.Api.Models.User", "User")
+                        .WithMany("UserPuntosInteres")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("PuntoInteres");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FuerzaCivil.Api.Models.PuntoInteres", b =>
                 {
                     b.Navigation("Insumos");
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Role", b =>
+                {
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.User", b =>
+                {
+                    b.Navigation("UserPuntosInteres");
                 });
 #pragma warning restore 612, 618
         }

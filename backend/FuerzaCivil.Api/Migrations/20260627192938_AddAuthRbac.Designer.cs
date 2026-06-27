@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FuerzaCivil.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260627184245_AddAuthRbac")]
+    [Migration("20260627192938_AddAuthRbac")]
     partial class AddAuthRbac
     {
         /// <inheritdoc />
@@ -62,6 +62,63 @@ namespace FuerzaCivil.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("config_app", (string)null);
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Donacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CantidadAnterior")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CantidadNueva")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Donante")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("InsumoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NombreProducto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("PuntoInteresId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Unidad")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("InsumoId");
+
+                    b.HasIndex("PuntoInteresId");
+
+                    b.ToTable("donaciones", (string)null);
                 });
 
             modelBuilder.Entity("FuerzaCivil.Api.Models.Insumo", b =>
@@ -224,6 +281,94 @@ namespace FuerzaCivil.Api.Migrations
                     b.ToTable("roles", (string)null);
                 });
 
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Solicitud", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CantidadSolicitada")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Categoria")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("InsumoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NotasInternas")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Prioridad")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ProductoNombre")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("PuntoInteresId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Solicitante")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TelefonoSolicitante")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Unidad")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("InsumoId");
+
+                    b.HasIndex("PuntoInteresId");
+
+                    b.HasIndex("Tipo");
+
+                    b.ToTable("solicitudes", (string)null);
+                });
+
             modelBuilder.Entity("FuerzaCivil.Api.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -321,6 +466,25 @@ namespace FuerzaCivil.Api.Migrations
                     b.ToTable("zonas_afectadas", (string)null);
                 });
 
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Donacion", b =>
+                {
+                    b.HasOne("FuerzaCivil.Api.Models.Insumo", "Insumo")
+                        .WithMany()
+                        .HasForeignKey("InsumoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FuerzaCivil.Api.Models.PuntoInteres", "PuntoInteres")
+                        .WithMany()
+                        .HasForeignKey("PuntoInteresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Insumo");
+
+                    b.Navigation("PuntoInteres");
+                });
+
             modelBuilder.Entity("FuerzaCivil.Api.Models.Insumo", b =>
                 {
                     b.HasOne("FuerzaCivil.Api.Models.PuntoInteres", "PuntoInteres")
@@ -328,6 +492,23 @@ namespace FuerzaCivil.Api.Migrations
                         .HasForeignKey("PuntoInteresId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("PuntoInteres");
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Solicitud", b =>
+                {
+                    b.HasOne("FuerzaCivil.Api.Models.Insumo", "Insumo")
+                        .WithMany()
+                        .HasForeignKey("InsumoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("FuerzaCivil.Api.Models.PuntoInteres", "PuntoInteres")
+                        .WithMany()
+                        .HasForeignKey("PuntoInteresId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Insumo");
 
                     b.Navigation("PuntoInteres");
                 });

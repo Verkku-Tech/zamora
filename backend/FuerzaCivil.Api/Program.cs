@@ -8,8 +8,12 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using FuerzaCivil.Api.Data;
 using Npgsql;
+using FuerzaCivil.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PermissionService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
@@ -36,7 +40,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Sistema", policy =>
+        policy.RequireClaim("role", "Sistema"));
+});
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -88,7 +96,7 @@ var app = builder.Build();
                 logger.LogInformation("Aplicando migraciones pendientes: {Migrations}", string.Join(", ", pending));
 
             db.Database.Migrate();
-            SeedData.Initialize(db);
+            SeedData.Initialize(db, app.Services.GetRequiredService<IConfiguration>());
             logger.LogInformation("Base de datos migrada e inicializada correctamente");
             break;
         }
