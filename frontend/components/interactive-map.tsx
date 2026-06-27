@@ -38,6 +38,36 @@ function buildHeatmapGeoJSON(zonas: ZonaAfectada[]): GeoJSON.FeatureCollection {
   }
 }
 
+function addHeatmapLayer(map: MapLibreMap, zonas: ZonaAfectada[]) {
+  if (map.getSource(HEATMAP_SOURCE)) return
+  map.addSource(HEATMAP_SOURCE, {
+    type: 'geojson',
+    data: buildHeatmapGeoJSON(zonas),
+  })
+  map.addLayer({
+    id: HEATMAP_LAYER,
+    type: 'heatmap',
+    source: HEATMAP_SOURCE,
+    paint: {
+      'heatmap-weight': ['get', 'intensidad'],
+      'heatmap-intensity': 0.6,
+      'heatmap-color': [
+        'interpolate',
+        ['linear'],
+        ['heatmap-density'],
+        0, 'rgba(0, 255, 0, 0)',
+        0.2, 'rgba(0, 255, 0, 0.5)',
+        0.4, 'rgba(255, 255, 0, 0.6)',
+        0.6, 'rgba(255, 165, 0, 0.7)',
+        0.8, 'rgba(255, 0, 0, 0.8)',
+        1, 'rgba(139, 0, 0, 0.9)',
+      ],
+      'heatmap-radius': 40,
+      'heatmap-opacity': 0.7,
+    },
+  })
+}
+
 export default function InteractiveMap({
   puntos,
   zonas,
@@ -50,11 +80,25 @@ export default function InteractiveMap({
   pickMarker = null,
   onReportClick,
 }: InteractiveMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapRef>(null)
   const heatmapAddedRef = useRef(false)
   const geolocatedRef = useRef(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [locating, setLocating] = useState(false)
+
+  const resizeMap = useCallback(() => {
+    const map = mapRef.current?.getMap() as MapLibreMap | undefined
+    map?.resize()
+  }, [])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => resizeMap())
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [resizeMap])
 
   useEffect(() => {
     if (!mapLoaded || geolocatedRef.current) return
@@ -80,7 +124,7 @@ export default function InteractiveMap({
   useEffect(() => {
     if (!mapRef.current) return
     const map = mapRef.current.getMap() as MapLibreMap
-    if (!map) return
+    if (!map || !heatmapAddedRef.current) return
     const source = map.getSource(HEATMAP_SOURCE) as GeoJSONSource | undefined
     if (source) source.setData(buildHeatmapGeoJSON(zonas))
   }, [zonas])
@@ -88,46 +132,22 @@ export default function InteractiveMap({
   const handleMapLoad = useCallback(
     (e: { target: MapLibreMap }) => {
       const map = e.target
-      if (heatmapAddedRef.current) return
+      resizeMap()
+      requestAnimationFrame(() => resizeMap())
+      setTimeout(() => resizeMap(), 100)
+      setTimeout(() => resizeMap(), 500)
 
-      map.addSource(HEATMAP_SOURCE, {
-        type: 'geojson',
-        data: buildHeatmapGeoJSON(zonas),
-      })
-
-      map.addLayer({
-        id: HEATMAP_LAYER,
-        type: 'heatmap',
-        source: HEATMAP_SOURCE,
-        paint: {
-          'heatmap-weight': ['get', 'intensidad'],
-          'heatmap-intensity': 0.6,
-          'heatmap-color': [
-            'interpolate',
-            ['linear'],
-            ['heatmap-density'],
-            0,
-            'rgba(0, 255, 0, 0)',
-            0.2,
-            'rgba(0, 255, 0, 0.5)',
-            0.4,
-            'rgba(255, 255, 0, 0.6)',
-            0.6,
-            'rgba(255, 165, 0, 0.7)',
-            0.8,
-            'rgba(255, 0, 0, 0.8)',
-            1,
-            'rgba(139, 0, 0, 0.9)',
-          ],
-          'heatmap-radius': 40,
-          'heatmap-opacity': 0.7,
-        },
-      })
-
-      heatmapAddedRef.current = true
+      if (!heatmapAddedRef.current) {
+        try {
+          addHeatmapLayer(map, zonas)
+          heatmapAddedRef.current = true
+        } catch {
+          /* heatmap opcional — no bloquear mapa base */
+        }
+      }
       setMapLoaded(true)
     },
-    [zonas],
+    [zonas, resizeMap],
   )
 
   const handleGeolocate = useCallback(() => {
@@ -170,7 +190,10 @@ export default function InteractiveMap({
   )
 
   return (
-    <div className="w-full h-full relative">
+    <div
+      ref={containerRef}
+      className={`absolute inset-0 w-full h-full min-h-[300px] ${reportPickMode ? 'cursor-crosshair' : ''}`}
+    >
       <Map
         ref={mapRef}
         mapLib={maplibregl}
@@ -179,10 +202,9 @@ export default function InteractiveMap({
           latitude: config.ubicacion_predeterminada.latitud,
           zoom: config.ubicacion_predeterminada.zoom,
         }}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: '100%', height: '100%', minHeight: '300px' }}
         mapStyle="https://tiles.openfreemap.org/styles/liberty"
         attributionControl={false}
-        cursor={reportPickMode ? 'crosshair' : 'grab'}
         onLoad={handleMapLoad}
         onClick={handleMapClick}
       >

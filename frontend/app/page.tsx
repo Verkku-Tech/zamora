@@ -10,7 +10,11 @@ import { useAppData } from '@/lib/hooks/use-app-data'
 
 const InteractiveMap = dynamic(() => import('@/components/interactive-map'), {
   ssr: false,
-  loading: () => <div className="w-full h-full bg-secondary animate-pulse" />,
+  loading: () => (
+    <div className="absolute inset-0 min-h-[50vh] bg-secondary animate-pulse flex items-center justify-center">
+      <p className="text-sm text-muted-foreground">Cargando mapa...</p>
+    </div>
+  ),
 })
 
 export default function Page() {
@@ -74,7 +78,7 @@ export default function Page() {
     <div className="min-h-screen bg-background flex flex-col">
       <PublicNavbar currentPage="mapa" />
 
-      <div className="relative flex-1 min-h-0 h-[calc(100dvh-64px)] md:h-[calc(100vh-80px)]">
+      <div className="relative flex-1 w-full min-h-[50vh] h-[calc(100dvh-56px)] md:h-[calc(100vh-72px)]">
         <InteractiveMap
           puntos={puntos}
           zonas={zonas}

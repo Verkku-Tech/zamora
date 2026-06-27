@@ -167,3 +167,15 @@
     @apply font-sans;
   }
 }
+
+/* MapLibre: asegurar que el canvas ocupe todo el contenedor */
+.maplibregl-map {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: inherit;
+}
+
+.maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
