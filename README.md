@@ -106,7 +106,8 @@ Verifica en [Verkku-Tech/zamora → Runners](https://github.com/Verkku-Tech/zamo
 | GET | `/api/Config` | Público |
 | POST | `/api/Reportes` | Público (rate-limited) |
 | POST/PUT/DELETE | CRUD admin | JWT Bearer |
-| GET | `/health` | Público |
+| GET | `/health/live` | Público | Liveness (Docker) |
+| GET | `/health` | Público | Readiness (incluye PostgreSQL) |
 
 ## Estructura
 

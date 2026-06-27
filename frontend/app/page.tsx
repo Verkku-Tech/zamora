@@ -85,11 +85,17 @@ export default function Page() {
           config={config}
           hideLegend={!!selectedPoi}
           reportPickMode={reportPickMode}
+          pickHint="Selecciona la zona afectada en el mapa"
           onMapPick={handleMapPick}
           onReportPickCancel={cancelReportPick}
           pickMarker={reportCoords}
           onReportClick={startReport}
           sidePanelOpen={!!selectedPoi && !reportPickMode}
+          focusLocation={
+            selectedPoi && !reportPickMode
+              ? { lat: selectedPoi.latitud, lng: selectedPoi.longitud, zoom: 16 }
+              : null
+          }
           onPoiClick={(poi) => {
             setSelectedPoiId(poi.id)
             setShowSupplies(false)

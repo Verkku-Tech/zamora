@@ -124,7 +124,11 @@ export default function CentrosPage() {
             insumosByCentro={insumosByCentro}
             onEdit={(c) => { setEditingCentro(c); setShowForm(true) }}
             onDelete={handleDelete}
-            onViewMap={(c) => router.push(`/admin/map?centro=${c.id}`)}
+            onViewMap={(c) =>
+              router.push(
+                `/admin/map?centro=${encodeURIComponent(c.id)}&lat=${c.latitud}&lng=${c.longitud}`,
+              )
+            }
           />
         </div>
       </main>
@@ -134,6 +138,7 @@ export default function CentrosPage() {
         onClose={() => { setShowForm(false); setEditingCentro(null) }}
         onSaved={refresh}
         centro={editingCentro}
+        insumosIniciales={editingCentro ? (insumosByCentro[editingCentro.id] ?? []) : []}
         defaultConfig={config}
       />
     </div>

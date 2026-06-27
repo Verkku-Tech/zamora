@@ -28,19 +28,35 @@ jobs:
       - name: Desplegar stack
         run: docker compose up -d --remove-orphans
 
-      - name: Esperar health check
+      - name: Esperar health check API
         run: |
           echo "Esperando que la API responda..."
-          for i in $(seq 1 30); do
-            if docker compose exec -T api curl -sf http://localhost:8080/health > /dev/null 2>&1; then
-              echo "API healthy"
-              exit 0
+          for i in $(seq 1 36); do
+            if docker compose exec -T api curl -sf http://localhost:8080/health/live > /dev/null 2>&1; then
+              echo "API alive (live)"
+              break
             fi
-            echo "Intento $i/30..."
+            echo "Intento $i/36..."
             sleep 5
           done
-          echo "Health check falló"
-          docker compose logs api
+          if ! docker compose exec -T api curl -sf http://localhost:8080/health/live > /dev/null 2>&1; then
+            echo "Health live falló"
+            docker compose ps
+            docker compose logs api --tail 150
+            exit 1
+          fi
+          echo "Verificando readiness (PostgreSQL)..."
+          for i in $(seq 1 12); do
+            if docker compose exec -T api curl -sf http://localhost:8080/health > /dev/null 2>&1; then
+              echo "API ready (health)"
+              exit 0
+            fi
+            echo "Readiness $i/12..."
+            sleep 5
+          done
+          echo "Health readiness falló"
+          docker compose ps
+          docker compose logs api --tail 150
           exit 1
 
       - name: Limpiar imágenes antiguas

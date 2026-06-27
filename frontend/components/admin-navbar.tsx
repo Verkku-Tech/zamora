@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Menu, X, LogOut, Map, Settings, BarChart3, Package } from 'lucide-react'
+import { Menu, X, LogOut, Map, Settings, BarChart3, Package, Gift } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface AdminNavbarProps {
-  currentPage?: 'dashboard' | 'map' | 'centros' | 'settings'
+  currentPage?: 'dashboard' | 'map' | 'centros' | 'donaciones' | 'settings'
 }
 
 export default function AdminNavbar({ currentPage = 'dashboard' }: AdminNavbarProps) {
@@ -25,6 +25,7 @@ export default function AdminNavbar({ currentPage = 'dashboard' }: AdminNavbarPr
     { href: '/admin', label: 'Dashboard', icon: BarChart3, page: 'dashboard' as const },
     { href: '/admin/map', label: 'Mapa', icon: Map, page: 'map' as const },
     { href: '/admin/centros', label: 'Centros', icon: Package, page: 'centros' as const },
+    { href: '/admin/donaciones', label: 'Donaciones', icon: Gift, page: 'donaciones' as const },
     { href: '/admin/settings', label: 'Configuración', icon: Settings, page: 'settings' as const },
   ]
 

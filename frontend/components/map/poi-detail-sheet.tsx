@@ -1,6 +1,7 @@
 'use client'
 
-import { PuntoInteres, Insumo, POI_LABELS } from '@/lib/mock-data'
+import { PuntoInteres, Insumo, POI_LABELS, categoriaColores, categoriaNombres } from '@/lib/mock-data'
+import { getCategoriasFromInsumos } from '@/lib/insumos-config'
 import SuppliesPanel from '@/components/supplies-panel'
 import { X, Phone, MapPin } from 'lucide-react'
 
@@ -13,7 +14,19 @@ interface PoiDetailSheetProps {
   compact?: boolean
 }
 
-function PoiInfoContent({ poi, dense = false }: { poi: PuntoInteres; dense?: boolean }) {
+function PoiInfoContent({
+  poi,
+  insumos,
+  dense = false,
+}: {
+  poi: PuntoInteres
+  insumos: Insumo[]
+  dense?: boolean
+}) {
+  const categorias = getCategoriasFromInsumos(insumos)
+  const categoriasLegacy = poi.tipos_donacion.filter(
+    (t) => !categorias.some((c) => categoriaNombres[c].toLowerCase() === t.toLowerCase() || c === t),
+  )
   return (
     <div className={`space-y-3 ${dense ? 'text-xs' : 'text-sm'}`}>
       <div>
@@ -69,13 +82,24 @@ function PoiInfoContent({ poi, dense = false }: { poi: PuntoInteres; dense?: boo
         </span>
       </div>
 
-      {poi.tipos_donacion.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {poi.tipos_donacion.map((tipo) => (
-            <span key={tipo} className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">
-              {tipo}
-            </span>
-          ))}
+      {(categorias.length > 0 || categoriasLegacy.length > 0) && (
+        <div>
+          <p className="text-xs text-muted-foreground mb-2">Categorías de donación</p>
+          <div className="flex flex-wrap gap-1.5">
+            {categorias.map((cat) => (
+              <span
+                key={cat}
+                className={`text-xs px-2.5 py-1 rounded-full font-semibold ${categoriaColores[cat]}`}
+              >
+                {categoriaNombres[cat]}
+              </span>
+            ))}
+            {categoriasLegacy.map((tipo) => (
+              <span key={tipo} className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">
+                {tipo}
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -134,7 +158,7 @@ export default function PoiDetailSheet({
         <div className="flex-1 overflow-y-auto overscroll-contain min-h-0">
           {!showSupplies ? (
             <div className="px-3 py-3">
-              <PoiInfoContent poi={poi} dense={compact} />
+              <PoiInfoContent poi={poi} insumos={insumos} dense={compact} />
             </div>
           ) : (
             <SuppliesPanel insumos={insumos} centroNombre={poi.nombre} embedded />
@@ -177,7 +201,7 @@ export default function PoiDetailSheet({
         <div className="flex-1 overflow-y-auto min-h-0">
           {!showSupplies ? (
             <div className="p-5">
-              <PoiInfoContent poi={poi} />
+              <PoiInfoContent poi={poi} insumos={insumos} />
             </div>
           ) : (
             <SuppliesPanel insumos={insumos} centroNombre={poi.nombre} embedded />

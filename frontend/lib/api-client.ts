@@ -178,6 +178,57 @@ export function deleteInsumo(id: string) {
   return request<void>(`/Insumos/${id}`, { method: 'DELETE' })
 }
 
+// ── Donaciones ──
+
+export interface DonacionApi {
+  id: string
+  puntoInteresId: string
+  puntoNombre: string
+  puntoTipo: string
+  insumoId: string
+  nombreProducto: string
+  categoria: string
+  cantidad: number
+  unidad: string | null
+  donante: string | null
+  notas: string | null
+  cantidadAnterior: number
+  cantidadNueva: number
+  createdAt: string
+}
+
+export interface CreateDonacionPayload {
+  puntoInteresId: string
+  insumoId?: string
+  nombre: string
+  categoria: string
+  cantidad: number
+  unidad: string
+  donante?: string
+  notas?: string
+}
+
+export interface DonacionResultApi {
+  donacion: DonacionApi
+  insumoNuevo: boolean
+  totalActual: number
+}
+
+export function getDonaciones(puntoInteresId?: string, limit = 100) {
+  const params = new URLSearchParams()
+  if (puntoInteresId) params.set('puntoInteresId', puntoInteresId)
+  params.set('limit', String(limit))
+  const qs = params.toString()
+  return request<DonacionApi[]>(`/Donaciones${qs ? `?${qs}` : ''}`)
+}
+
+export function registrarDonacion(data: CreateDonacionPayload) {
+  return request<DonacionResultApi>('/Donaciones', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
 // ── Zonas afectadas ──
 
 export interface ZonaAfectadaApi {

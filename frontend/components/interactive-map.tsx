@@ -8,8 +8,8 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import PoiMarkers from './map/poi-markers'
 import Legend from './map/legend'
 import MapFloatingControls from './map/map-floating-controls'
+import MapPickHint from './map/map-pick-hint'
 import { PuntoInteres, ZonaAfectada, ConfigApp, CONFIG_APP } from '@/lib/mock-data'
-import { X } from 'lucide-react'
 
 interface InteractiveMapProps {
   puntos: PuntoInteres[]
@@ -18,11 +18,16 @@ interface InteractiveMapProps {
   onPoiClick?: (punto: PuntoInteres) => void
   hideLegend?: boolean
   reportPickMode?: boolean
+  pickHint?: string
   onMapPick?: (lat: number, lng: number) => void
   onReportPickCancel?: () => void
   pickMarker?: { lat: number; lng: number } | null
   onReportClick?: () => void
   sidePanelOpen?: boolean
+  /** Centrar mapa en estas coordenadas (p. ej. al abrir un centro desde la tabla) */
+  focusLocation?: { lat: number; lng: number; zoom?: number } | null
+  /** Geolocalizar al cargar; desactivar en admin cuando se navega a un centro concreto */
+  autoGeolocate?: boolean
 }
 
 const HEATMAP_SOURCE = 'zonas-afectadas-source'
@@ -76,11 +81,14 @@ export default function InteractiveMap({
   onPoiClick,
   hideLegend = false,
   reportPickMode = false,
+  pickHint = 'Selecciona la zona afectada en el mapa',
   onMapPick,
   onReportPickCancel,
   pickMarker = null,
   onReportClick,
   sidePanelOpen = false,
+  focusLocation = null,
+  autoGeolocate = true,
 }: InteractiveMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapRef>(null)
@@ -103,7 +111,7 @@ export default function InteractiveMap({
   }, [resizeMap])
 
   useEffect(() => {
-    if (!mapLoaded || geolocatedRef.current) return
+    if (!mapLoaded || geolocatedRef.current || !autoGeolocate || focusLocation) return
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -121,7 +129,20 @@ export default function InteractiveMap({
         { enableHighAccuracy: true, timeout: 10000 },
       )
     }
-  }, [mapLoaded])
+  }, [mapLoaded, autoGeolocate, focusLocation])
+
+  useEffect(() => {
+    if (!mapLoaded || !focusLocation) return
+    const map = mapRef.current?.getMap() as MapLibreMap | undefined
+    if (!map) return
+
+    geolocatedRef.current = true
+    map.flyTo({
+      center: [focusLocation.lng, focusLocation.lat],
+      zoom: focusLocation.zoom ?? 16,
+      duration: 1200,
+    })
+  }, [mapLoaded, focusLocation?.lat, focusLocation?.lng, focusLocation?.zoom])
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -222,21 +243,8 @@ export default function InteractiveMap({
         )}
       </Map>
 
-      {reportPickMode && (
-        <div className="absolute top-2 inset-x-2 z-50 flex items-center gap-2 bg-orange-500 text-white rounded-xl px-3 py-2.5 shadow-lg text-sm">
-          <span className="flex-1 font-medium">
-            <span className="md:hidden">Toca el mapa donde está la zona afectada</span>
-            <span className="hidden md:inline">Haz clic en el mapa donde está la zona afectada</span>
-          </span>
-          <button
-            type="button"
-            onClick={onReportPickCancel}
-            className="p-1 rounded-md hover:bg-orange-600 shrink-0"
-            aria-label="Cancelar"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      {reportPickMode && onReportPickCancel && (
+        <MapPickHint message={pickHint} onCancel={onReportPickCancel} />
       )}
 
       {onReportClick && (
