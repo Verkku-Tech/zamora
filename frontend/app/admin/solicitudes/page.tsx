@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth } from '@/lib/auth-context'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import AdminNavbar from '@/components/admin-navbar'
@@ -46,10 +47,6 @@ export default function SolicitudesPage() {
   const [filtroTipo, setFiltroTipo] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
 
-  useEffect(() => {
-    if (!isAuthenticated) router.push('/login')
-  }, [isAuthenticated, router])
-
   const loadSolicitudes = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -88,13 +85,33 @@ export default function SolicitudesPage() {
     setShowForm(true)
   }
 
-  if (!isAuthenticated) return null
-
   const pendientes = solicitudes.filter((s) => s.estado === 'pendiente' || s.estado === 'en_busqueda').length
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminNavbar currentPage="solicitudes" />
+      {isAuthenticated ? (
+        <AdminNavbar currentPage="solicitudes" />
+      ) : (
+        <nav className="bg-sidebar border-b border-sidebar-border sticky top-0 z-40 shrink-0">
+          <div className="max-w-4xl mx-auto px-3 py-2.5 md:px-4 md:py-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center">
+                <span className="text-sidebar-primary-foreground font-bold">FC</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-sidebar-foreground">FuerzaCivil</h1>
+                <p className="text-xs text-sidebar-accent-foreground">Solicitudes</p>
+              </div>
+            </div>
+            <Link
+              href="/login"
+              className="text-sm text-sidebar-foreground hover:bg-sidebar-accent px-3 py-1.5 rounded-md"
+            >
+              Iniciar sesión
+            </Link>
+          </div>
+        </nav>
+      )}
 
       <main className="max-w-4xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -201,17 +218,19 @@ export default function SolicitudesPage() {
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        router.push(
-                          `/admin/map?centro=${encodeURIComponent(r.punto_interes_id)}`,
-                        )
-                      }
-                    >
-                      Ver mapa
-                    </Button>
+                    {isAuthenticated && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          router.push(
+                            `/admin/map?centro=${encodeURIComponent(r.punto_interes_id)}`,
+                          )
+                        }
+                      >
+                        Ver mapa
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       className="bg-accent hover:bg-accent/90"
@@ -226,46 +245,48 @@ export default function SolicitudesPage() {
           )}
         </section>
 
-        {/* Listado solicitudes */}
-        <section className="bg-card rounded-xl border border-border p-4 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 className="font-semibold">Solicitudes activas</h2>
-              {pendientes > 0 && (
-                <p className="text-xs text-orange-500 mt-0.5">{pendientes} pendiente{pendientes !== 1 ? 's' : ''}</p>
-              )}
+        {/* Listado solicitudes - solo visible para admins */}
+        {isAuthenticated && (
+          <section className="bg-card rounded-xl border border-border p-4 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="font-semibold">Solicitudes activas</h2>
+                {pendientes > 0 && (
+                  <p className="text-xs text-orange-500 mt-0.5">{pendientes} pendiente{pendientes !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
+                  className="h-9 rounded-md border border-border bg-secondary px-2 text-xs"
+                >
+                  <option value="">Todos los tipos</option>
+                  <option value="insumo">Insumos</option>
+                  <option value="inspeccion">Inspecciones</option>
+                </select>
+                <select
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  className="h-9 rounded-md border border-border bg-secondary px-2 text-xs"
+                >
+                  <option value="">Todos los estados</option>
+                  {ESTADOS_SOLICITUD.map((e) => (
+                    <option key={e} value={e}>{estadoSolicitudLabels[e]}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <select
-                value={filtroTipo}
-                onChange={(e) => setFiltroTipo(e.target.value)}
-                className="h-9 rounded-md border border-border bg-secondary px-2 text-xs"
-              >
-                <option value="">Todos los tipos</option>
-                <option value="insumo">Insumos</option>
-                <option value="inspeccion">Inspecciones</option>
-              </select>
-              <select
-                value={filtroEstado}
-                onChange={(e) => setFiltroEstado(e.target.value)}
-                className="h-9 rounded-md border border-border bg-secondary px-2 text-xs"
-              >
-                <option value="">Todos los estados</option>
-                {ESTADOS_SOLICITUD.map((e) => (
-                  <option key={e} value={e}>{estadoSolicitudLabels[e]}</option>
-                ))}
-              </select>
-            </div>
-          </div>
 
-          {loading ? (
-            <LoadingState />
-          ) : error ? (
-            <ErrorState message={error} onRetry={loadSolicitudes} />
-          ) : (
-            <SolicitudesList solicitudes={solicitudes} onRefresh={loadSolicitudes} />
-          )}
-        </section>
+            {loading ? (
+              <LoadingState />
+            ) : error ? (
+              <ErrorState message={error} onRetry={loadSolicitudes} />
+            ) : (
+              <SolicitudesList solicitudes={solicitudes} onRefresh={loadSolicitudes} />
+            )}
+          </section>
+        )}
       </main>
 
       <SolicitudFormDialog

@@ -80,7 +80,6 @@ public class SolicitudesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<ActionResult<SolicitudDto>> Create(CreateSolicitudDto dto)
     {
         var tipo = dto.Tipo.Trim().ToLowerInvariant();
