@@ -24,6 +24,10 @@ interface InteractiveMapProps {
   pickMarker?: { lat: number; lng: number } | null
   onReportClick?: () => void
   sidePanelOpen?: boolean
+  /** Centrar mapa en estas coordenadas (p. ej. al abrir un centro desde la tabla) */
+  focusLocation?: { lat: number; lng: number; zoom?: number } | null
+  /** Geolocalizar al cargar; desactivar en admin cuando se navega a un centro concreto */
+  autoGeolocate?: boolean
 }
 
 const HEATMAP_SOURCE = 'zonas-afectadas-source'
@@ -83,6 +87,8 @@ export default function InteractiveMap({
   pickMarker = null,
   onReportClick,
   sidePanelOpen = false,
+  focusLocation = null,
+  autoGeolocate = true,
 }: InteractiveMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapRef>(null)
@@ -105,7 +111,7 @@ export default function InteractiveMap({
   }, [resizeMap])
 
   useEffect(() => {
-    if (!mapLoaded || geolocatedRef.current) return
+    if (!mapLoaded || geolocatedRef.current || !autoGeolocate || focusLocation) return
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -123,7 +129,20 @@ export default function InteractiveMap({
         { enableHighAccuracy: true, timeout: 10000 },
       )
     }
-  }, [mapLoaded])
+  }, [mapLoaded, autoGeolocate, focusLocation])
+
+  useEffect(() => {
+    if (!mapLoaded || !focusLocation) return
+    const map = mapRef.current?.getMap() as MapLibreMap | undefined
+    if (!map) return
+
+    geolocatedRef.current = true
+    map.flyTo({
+      center: [focusLocation.lng, focusLocation.lat],
+      zoom: focusLocation.zoom ?? 16,
+      duration: 1200,
+    })
+  }, [mapLoaded, focusLocation?.lat, focusLocation?.lng, focusLocation?.zoom])
 
   useEffect(() => {
     if (!mapRef.current) return

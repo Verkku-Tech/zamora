@@ -32,13 +32,21 @@ function AdminMapContent() {
 
   useEffect(() => {
     const centroId = searchParams.get('centro')
-    if (centroId && puntos.length > 0) {
-      const found = puntos.find((p) => p.id === centroId)
-      if (found) setSelectedPoiId(found.id)
-    }
+    if (!centroId || puntos.length === 0) return
+    const found = puntos.find((p) => p.id.toLowerCase() === centroId.toLowerCase())
+    if (found) setSelectedPoiId(found.id)
   }, [searchParams, puntos])
 
-  const selectedPoi = selectedPoiId ? puntos.find((p) => p.id === selectedPoiId) ?? null : null
+  const selectedPoi = selectedPoiId
+    ? puntos.find((p) => p.id.toLowerCase() === selectedPoiId.toLowerCase()) ?? null
+    : null
+
+  const latParam = searchParams.get('lat')
+  const lngParam = searchParams.get('lng')
+  const urlFocus =
+    latParam && lngParam && !Number.isNaN(Number(latParam)) && !Number.isNaN(Number(lngParam))
+      ? { lat: Number(latParam), lng: Number(lngParam), zoom: 16 as const }
+      : null
 
   const startReport = () => {
     setReportPickMode(true)
@@ -94,6 +102,12 @@ function AdminMapContent() {
           zonas={zonas}
           config={config}
           hideLegend={!!selectedPoi}
+          autoGeolocate={false}
+          focusLocation={
+            selectedPoi
+              ? { lat: selectedPoi.latitud, lng: selectedPoi.longitud, zoom: 16 }
+              : urlFocus
+          }
           reportPickMode={reportPickMode}
           pickHint="Selecciona la zona afectada en el mapa"
           onMapPick={handleMapPick}

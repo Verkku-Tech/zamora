@@ -12,7 +12,8 @@ import {
   CONFIG_APP,
 } from '@/lib/mock-data'
 import { createPuntoInteres, updatePuntoInteres, CreatePuntoInteresPayload } from '@/lib/api-client'
-import { X, MapPin } from 'lucide-react'
+import { reverseGeocode } from '@/lib/reverse-geocode'
+import { X, MapPin, Loader2 } from 'lucide-react'
 
 interface CentroFormDialogProps {
   open: boolean
@@ -73,6 +74,7 @@ export default function CentroFormDialog({
   )
   const [locationSet, setLocationSet] = useState(!!centro)
   const [showLocationPicker, setShowLocationPicker] = useState(false)
+  const [geocoding, setGeocoding] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -105,6 +107,7 @@ export default function CentroFormDialog({
     }
     setError('')
     setShowLocationPicker(false)
+    setGeocoding(false)
   }, [open, centro, defaultConfig])
 
   if (!open) return null
@@ -139,10 +142,28 @@ export default function CentroFormDialog({
     }
   }
 
-  const handleLocationConfirm = (lat: number, lng: number) => {
+  const handleLocationConfirm = async (lat: number, lng: number) => {
     setForm((f) => ({ ...f, latitud: lat, longitud: lng }))
     setLocationSet(true)
     setShowLocationPicker(false)
+    setGeocoding(true)
+
+    try {
+      const place = await reverseGeocode(lat, lng)
+      setForm((f) => ({
+        ...f,
+        latitud: lat,
+        longitud: lng,
+        direccion: place.direccion || f.direccion || '',
+        ciudad: place.ciudad || f.ciudad,
+        municipio: place.municipio || f.municipio,
+        estado: place.estado || f.estado,
+      }))
+    } catch {
+      /* coords ya guardadas; dirección se puede escribir manualmente */
+    } finally {
+      setGeocoding(false)
+    }
   }
 
   return (
@@ -208,7 +229,28 @@ export default function CentroFormDialog({
 
             <div>
               <label className="text-sm font-medium">Dirección</label>
-              <Input value={form.direccion ?? ''} onChange={(e) => setForm((f) => ({ ...f, direccion: e.target.value }))} />
+              <div className="relative mt-1">
+                <Input
+                  value={form.direccion ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, direccion: e.target.value }))}
+                  placeholder={geocoding ? 'Obteniendo dirección del mapa...' : 'Se completa al seleccionar en el mapa'}
+                  disabled={geocoding}
+                />
+                {geocoding && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Se obtiene automáticamente del punto en el mapa. Puedes editarla si hace falta.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Ciudad</label>
+              <Input
+                value={form.ciudad ?? ''}
+                onChange={(e) => setForm((f) => ({ ...f, ciudad: e.target.value }))}
+                placeholder="Guatire"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

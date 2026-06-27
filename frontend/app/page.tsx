@@ -91,6 +91,11 @@ export default function Page() {
           pickMarker={reportCoords}
           onReportClick={startReport}
           sidePanelOpen={!!selectedPoi && !reportPickMode}
+          focusLocation={
+            selectedPoi && !reportPickMode
+              ? { lat: selectedPoi.latitud, lng: selectedPoi.longitud, zoom: 16 }
+              : null
+          }
           onPoiClick={(poi) => {
             setSelectedPoiId(poi.id)
             setShowSupplies(false)
