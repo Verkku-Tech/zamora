@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import LocationPickerMap from '@/components/map/location-picker-map'
 import {
   PuntoInteres,
+  Insumo,
   TIPOS_POI,
   POI_LABELS,
   ESTADOS_OPERATIVOS,
@@ -13,6 +14,13 @@ import {
 } from '@/lib/mock-data'
 import { createPuntoInteres, updatePuntoInteres, CreatePuntoInteresPayload } from '@/lib/api-client'
 import { reverseGeocode } from '@/lib/reverse-geocode'
+import {
+  InsumoFormRow,
+  insumoToFormRow,
+  syncInsumosForCentro,
+  getCategoriasFromRows,
+} from '@/lib/insumos-config'
+import InsumosFormEditor from '@/components/insumos-form-editor'
 import { X, MapPin, Loader2 } from 'lucide-react'
 
 interface CentroFormDialogProps {
@@ -20,6 +28,7 @@ interface CentroFormDialogProps {
   onClose: () => void
   onSaved: () => void
   centro?: PuntoInteres | null
+  insumosIniciales?: Insumo[]
   defaultConfig?: typeof CONFIG_APP
 }
 
@@ -46,6 +55,7 @@ export default function CentroFormDialog({
   onClose,
   onSaved,
   centro,
+  insumosIniciales = [],
   defaultConfig = CONFIG_APP,
 }: CentroFormDialogProps) {
   const [form, setForm] = useState<CreatePuntoInteresPayload>(() =>
@@ -69,9 +79,8 @@ export default function CentroFormDialog({
         }
       : emptyForm(defaultConfig),
   )
-  const [tiposDonacionText, setTiposDonacionText] = useState(
-    centro?.tipos_donacion.join(', ') ?? '',
-  )
+  const [insumoRows, setInsumoRows] = useState<InsumoFormRow[]>([])
+  const [existingInsumos, setExistingInsumos] = useState<Insumo[]>([])
   const [locationSet, setLocationSet] = useState(!!centro)
   const [showLocationPicker, setShowLocationPicker] = useState(false)
   const [geocoding, setGeocoding] = useState(false)
@@ -98,17 +107,19 @@ export default function CentroFormDialog({
         estadoOperativo: centro.estado_operativo,
         tiposDonacion: centro.tipos_donacion,
       })
-      setTiposDonacionText(centro.tipos_donacion.join(', '))
+      setInsumoRows(insumosIniciales.map(insumoToFormRow))
+      setExistingInsumos(insumosIniciales)
       setLocationSet(true)
     } else {
       setForm(emptyForm(defaultConfig))
-      setTiposDonacionText('')
+      setInsumoRows([])
+      setExistingInsumos([])
       setLocationSet(false)
     }
     setError('')
     setShowLocationPicker(false)
     setGeocoding(false)
-  }, [open, centro, defaultConfig])
+  }, [open, centro, defaultConfig, insumosIniciales])
 
   if (!open) return null
 
@@ -120,18 +131,21 @@ export default function CentroFormDialog({
     }
     setLoading(true)
     setError('')
+    const categorias = getCategoriasFromRows(insumoRows)
     const payload = {
       ...form,
-      tiposDonacion: tiposDonacionText
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
+      tiposDonacion: categorias,
     }
     try {
+      let centroId = centro?.id
       if (centro) {
         await updatePuntoInteres(centro.id, payload)
       } else {
-        await createPuntoInteres(payload)
+        const created = await createPuntoInteres(payload)
+        centroId = created.id
+      }
+      if (form.tipo === 'centro_acopio' && centroId) {
+        await syncInsumosForCentro(centroId, insumoRows, existingInsumos)
       }
       onSaved()
       onClose()
@@ -169,7 +183,7 @@ export default function CentroFormDialog({
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="bg-card rounded-lg border border-border shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="bg-card rounded-lg border border-border shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <h2 className="text-lg font-bold">{centro ? 'Editar Punto' : 'Nuevo Punto'}</h2>
             <button type="button" onClick={onClose} className="p-1 hover:bg-secondary rounded">
@@ -288,10 +302,9 @@ export default function CentroFormDialog({
                 ))}
               </select>
             </div>
-            <div>
-              <label className="text-sm font-medium">Tipos de donación (separados por coma)</label>
-              <Input value={tiposDonacionText} onChange={(e) => setTiposDonacionText(e.target.value)} placeholder="alimentos, medicinas, agua" />
-            </div>
+            {form.tipo === 'centro_acopio' && (
+              <InsumosFormEditor rows={insumoRows} onChange={setInsumoRows} />
+            )}
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-2 pt-2">
               <Button type="submit" disabled={loading} className="flex-1 bg-accent hover:bg-accent/90">

@@ -138,6 +138,7 @@ export default function CentrosPage() {
         onClose={() => { setShowForm(false); setEditingCentro(null) }}
         onSaved={refresh}
         centro={editingCentro}
+        insumosIniciales={editingCentro ? (insumosByCentro[editingCentro.id] ?? []) : []}
         defaultConfig={config}
       />
     </div>
