@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
 
     public DbSet<PuntoInteres> PuntosInteres => Set<PuntoInteres>();
     public DbSet<Insumo> Insumos => Set<Insumo>();
+    public DbSet<Donacion> Donaciones => Set<Donacion>();
     public DbSet<ZonaAfectada> ZonasAfectadas => Set<ZonaAfectada>();
     public DbSet<ConfigApp> ConfigApp => Set<ConfigApp>();
 
@@ -29,6 +30,21 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Insumo>(entity =>
         {
             entity.ToTable("insumos");
+        });
+
+        modelBuilder.Entity<Donacion>(entity =>
+        {
+            entity.ToTable("donaciones");
+            entity.HasIndex(e => e.PuntoInteresId);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasOne(e => e.PuntoInteres)
+                  .WithMany()
+                  .HasForeignKey(e => e.PuntoInteresId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Insumo)
+                  .WithMany()
+                  .HasForeignKey(e => e.InsumoId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ZonaAfectada>(entity =>

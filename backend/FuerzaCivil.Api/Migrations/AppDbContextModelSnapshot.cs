@@ -61,6 +61,63 @@ namespace FuerzaCivil.Api.Migrations
                     b.ToTable("config_app", (string)null);
                 });
 
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Donacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CantidadAnterior")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CantidadNueva")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Donante")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("InsumoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NombreProducto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("PuntoInteresId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Unidad")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("InsumoId");
+
+                    b.HasIndex("PuntoInteresId");
+
+                    b.ToTable("donaciones", (string)null);
+                });
+
             modelBuilder.Entity("FuerzaCivil.Api.Models.Insumo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -226,6 +283,25 @@ namespace FuerzaCivil.Api.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Ubicacion"), "GIST");
 
                     b.ToTable("zonas_afectadas", (string)null);
+                });
+
+            modelBuilder.Entity("FuerzaCivil.Api.Models.Donacion", b =>
+                {
+                    b.HasOne("FuerzaCivil.Api.Models.Insumo", "Insumo")
+                        .WithMany()
+                        .HasForeignKey("InsumoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FuerzaCivil.Api.Models.PuntoInteres", "PuntoInteres")
+                        .WithMany()
+                        .HasForeignKey("PuntoInteresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Insumo");
+
+                    b.Navigation("PuntoInteres");
                 });
 
             modelBuilder.Entity("FuerzaCivil.Api.Models.Insumo", b =>
