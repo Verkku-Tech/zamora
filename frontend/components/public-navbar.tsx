@@ -16,24 +16,24 @@ export default function PublicNavbar({ currentPage }: PublicNavbarProps) {
   ]
 
   return (
-    <nav className="bg-sidebar border-b border-sidebar-border sticky top-0 z-40 shrink-0">
-      <div className="max-w-7xl mx-auto px-3 py-2.5 md:px-4 md:py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center">
-            <span className="text-sidebar-primary-foreground font-bold">FC</span>
+    <nav className="bg-sidebar border-b border-sidebar-border sticky top-0 z-40 shrink-0 w-full">
+      <div className="w-full px-2 sm:px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 md:gap-4">
+        <Link href="/" className="flex items-center gap-2 shrink-0 min-w-0">
+          <div className="w-9 h-9 md:w-10 md:h-10 bg-sidebar-primary rounded-lg flex items-center justify-center shrink-0">
+            <span className="text-sidebar-primary-foreground font-bold text-sm md:text-base">FC</span>
           </div>
-          <div className="hidden md:block">
-            <h1 className="text-lg font-bold text-sidebar-foreground">FuerzaCivil</h1>
-            <p className="text-xs text-sidebar-accent-foreground">Centros de Acopio</p>
+          <div className="hidden sm:block min-w-0">
+            <h1 className="text-base md:text-lg font-bold text-sidebar-foreground leading-tight truncate">FuerzaCivil</h1>
+            <p className="text-[10px] md:text-xs text-sidebar-accent-foreground leading-tight">Centros de Acopio</p>
           </div>
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex flex-1 items-center justify-center gap-0.5 sm:gap-1 min-w-0 overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = currentPage === item.page
             return (
-              <Link key={item.page} href={item.href}>
+              <Link key={item.page} href={item.href} className="shrink-0">
                 <Button
                   variant={isActive ? 'default' : 'ghost'}
                   size="sm"
@@ -41,18 +41,18 @@ export default function PublicNavbar({ currentPage }: PublicNavbarProps) {
                     isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline whitespace-nowrap">{item.label}</span>
                 </Button>
               </Link>
             )
           })}
         </div>
 
-        <Link href="/login">
-          <Button variant="ghost" className="text-sidebar-foreground hover:bg-sidebar-accent flex items-center gap-2">
-            <LogIn className="w-4 h-4" />
-            <span className="hidden md:inline">Iniciar Sesión</span>
+        <Link href="/login" className="shrink-0 ml-auto">
+          <Button variant="ghost" size="sm" className="text-sidebar-foreground hover:bg-sidebar-accent flex items-center gap-1.5 px-2 sm:px-3">
+            <LogIn className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Iniciar Sesión</span>
           </Button>
         </Link>
       </div>
