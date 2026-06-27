@@ -7,9 +7,10 @@ import { ChevronDown, AlertCircle } from 'lucide-react'
 interface SuppliesPanelProps {
   insumos: Insumo[]
   centroNombre: string
+  embedded?: boolean
 }
 
-export default function SuppliesPanel({ insumos, centroNombre }: SuppliesPanelProps) {
+export default function SuppliesPanel({ insumos, centroNombre, embedded = false }: SuppliesPanelProps) {
   const [expandedCategory, setExpandedCategory] = useState<CategoriaInsumo | null>(null)
 
   // Agrupar insumos por categoría y ordenar por prioridad
@@ -46,11 +47,13 @@ export default function SuppliesPanel({ insumos, centroNombre }: SuppliesPanelPr
   }
 
   return (
-    <div className="flex flex-col h-full bg-card">
-      <div className="sticky top-0 bg-card border-b border-border p-4 z-10">
-        <h2 className="font-semibold text-foreground text-lg truncate">{centroNombre}</h2>
-        <p className="text-sm text-muted-foreground mt-1">Insumos necesitados</p>
-      </div>
+    <div className={`flex flex-col h-full bg-card ${embedded ? '' : ''}`}>
+      {!embedded && (
+        <div className="sticky top-0 bg-card border-b border-border p-4 z-10">
+          <h2 className="font-semibold text-foreground text-lg truncate">{centroNombre}</h2>
+          <p className="text-sm text-muted-foreground mt-1">Insumos necesitados</p>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto">
         {categoriasConCriticos.length > 0 && (

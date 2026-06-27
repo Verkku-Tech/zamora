@@ -46,10 +46,10 @@ export default function PublicCentrosPage() {
     <div className="min-h-screen bg-background">
       <PublicNavbar currentPage="centros" />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:py-8 space-y-4 md:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Centros de Acopio</h1>
-          <p className="text-muted-foreground">Conoce los centros activos y qué necesitan</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Centros de Acopio</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Conoce los centros activos y qué necesitan</p>
         </div>
 
         <div className="relative">

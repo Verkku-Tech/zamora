@@ -60,7 +60,7 @@ function AdminMapContent() {
     <div className="min-h-screen bg-background flex flex-col">
       <AdminNavbar currentPage="map" />
 
-      <div className="relative flex-1 min-h-0 h-[calc(100dvh-64px)] md:h-[calc(100vh-80px)]">
+      <div className="relative flex-1 w-full min-h-[50vh] h-[calc(100dvh-56px)] md:h-[calc(100vh-72px)]">
         <InteractiveMap
           puntos={puntos}
           zonas={zonas}
@@ -82,7 +82,6 @@ function AdminMapContent() {
               setSelectedPoiId(null)
               setShowSupplies(false)
             }}
-            compact
           />
         )}
       </div>

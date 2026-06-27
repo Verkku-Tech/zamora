@@ -71,15 +71,15 @@ export default function CentrosPage() {
     <div className="min-h-screen bg-background">
       <AdminNavbar currentPage="centros" />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <main className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:py-8 space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Gestión de Centros</h1>
-            <p className="text-muted-foreground">Administra los centros de acopio activos</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Gestión de Centros</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Administra los centros de acopio activos</p>
           </div>
           <Button
             onClick={() => { setEditingCentro(null); setShowForm(true) }}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-2 w-fit"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-2 w-full sm:w-fit"
           >
             <Plus className="w-4 h-4" />
             Nuevo Centro

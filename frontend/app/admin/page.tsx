@@ -48,20 +48,20 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background">
       <AdminNavbar currentPage="dashboard" />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <div className="flex items-center justify-between">
+      <main className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-6 md:py-8 space-y-6 md:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-primary" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground">Panel de control — {config.municipio}, {config.estado}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Panel de control — {config.municipio}, {config.estado}</p>
             </div>
           </div>
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-2"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground flex items-center gap-2 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             Nuevo Centro
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
         <StatisticsPanel centros={puntos} />
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-foreground">Centros de Acopio</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Centros de Acopio</h2>
           <CentrosTable centros={puntos} insumosByCentro={insumosByCentro} readOnly />
         </div>
       </main>

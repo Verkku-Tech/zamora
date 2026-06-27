@@ -41,42 +41,42 @@ export default function StatisticsPanel({ centros }: StatisticsPanelProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-card rounded-lg p-6 border border-border">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Centros Activos</p>
-              <p className="text-3xl font-bold text-foreground mt-2">{activos}</p>
+              <p className="text-2xl md:text-3xl font-bold text-foreground mt-2">{activos}</p>
             </div>
             <Activity className="w-8 h-8 text-accent" />
           </div>
         </div>
 
-        <div className="bg-card rounded-lg p-6 border border-border">
+        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Beneficiarios</p>
-              <p className="text-3xl font-bold text-foreground mt-2">{totalBeneficiarios}</p>
+              <p className="text-2xl md:text-3xl font-bold text-foreground mt-2">{totalBeneficiarios}</p>
             </div>
             <Users className="w-8 h-8 text-blue-500" />
           </div>
         </div>
 
-        <div className="bg-card rounded-lg p-6 border border-border">
+        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Donaciones Totales</p>
-              <p className="text-3xl font-bold text-foreground mt-2">{totalDonaciones}</p>
+              <p className="text-2xl md:text-3xl font-bold text-foreground mt-2">{totalDonaciones}</p>
             </div>
             <Package className="w-8 h-8 text-green-500" />
           </div>
         </div>
 
-        <div className="bg-card rounded-lg p-6 border border-border">
+        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Utilización</p>
-              <p className="text-3xl font-bold text-accent mt-2">{tasaUtilizacion}%</p>
+              <p className="text-2xl md:text-3xl font-bold text-accent mt-2">{tasaUtilizacion}%</p>
             </div>
             <TrendingUp className="w-8 h-8 text-yellow-500" />
           </div>
@@ -84,9 +84,9 @@ export default function StatisticsPanel({ centros }: StatisticsPanelProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card rounded-lg p-6 border border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Estado de Centros</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
+          <h3 className="text-base md:text-lg font-semibold text-foreground mb-4">Estado de Centros</h3>
+          <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
                 data={statusData}
@@ -107,9 +107,9 @@ export default function StatisticsPanel({ centros }: StatisticsPanelProps) {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-card rounded-lg p-6 border border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Donaciones por Centro</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
+          <h3 className="text-base md:text-lg font-semibold text-foreground mb-4">Donaciones por Centro</h3>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={donacionesPorCentro}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
               <XAxis dataKey="nombre" tick={{ fill: 'var(--color-foreground)', fontSize: 12 }} />
@@ -121,9 +121,9 @@ export default function StatisticsPanel({ centros }: StatisticsPanelProps) {
         </div>
       </div>
 
-      <div className="bg-card rounded-lg p-6 border border-border">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Tendencia de Donaciones</h3>
-        <ResponsiveContainer width="100%" height={250}>
+      <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
+        <h3 className="text-base md:text-lg font-semibold text-foreground mb-4">Tendencia de Donaciones</h3>
+        <ResponsiveContainer width="100%" height={220}>
           <LineChart data={timelineData}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="nombre" tick={{ fill: 'var(--color-foreground)', fontSize: 12 }} />
