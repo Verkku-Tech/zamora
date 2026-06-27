@@ -1,11 +1,25 @@
 'use client'
 
+import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import PublicNavbar from '@/components/public-navbar'
 import SolicitudFormDialog from '@/components/solicitud-form-dialog'
-import { buscarInsumos, mapInsumoBusqueda } from '@/lib/api-client'
-import { InsumoBusqueda, TipoSolicitud } from '@/lib/solicitudes-config'
+import SolicitudesList from '@/components/solicitudes-list'
+import { LoadingState, ErrorState } from '@/components/loading-state'
+import {
+  buscarInsumos,
+  getSolicitudes,
+  mapInsumoBusqueda,
+  mapSolicitud,
+} from '@/lib/api-client'
+import {
+  InsumoBusqueda,
+  Solicitud,
+  TipoSolicitud,
+  ESTADOS_SOLICITUD,
+  estadoSolicitudLabels,
+} from '@/lib/solicitudes-config'
 import { formatCantidad, formatUnidad } from '@/lib/insumos-config'
 import { POI_ICONS, POI_LABELS, categoriaNombres } from '@/lib/mock-data'
 import type { TipoPuntoInteres, CategoriaInsumo } from '@/lib/mock-data'
@@ -14,7 +28,9 @@ import { Input } from '@/components/ui/input'
 import { ClipboardList, Search, Plus, MapPin, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export default function SolicitudesPage() {
+  const { isAuthenticated } = useAuth()
   const router = useRouter()
+
   const [busqueda, setBusqueda] = useState('')
   const [buscando, setBuscando] = useState(false)
   const [resultados, setResultados] = useState<InsumoBusqueda[]>([])
@@ -24,6 +40,30 @@ export default function SolicitudesPage() {
   const [formTipo, setFormTipo] = useState<TipoSolicitud>('insumo')
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<InsumoBusqueda | null>(null)
   const [mensajeExito, setMensajeExito] = useState('')
+
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])
+  const [loadingLista, setLoadingLista] = useState(false)
+  const [errorLista, setErrorLista] = useState<string | null>(null)
+  const [filtroTipo, setFiltroTipo] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('')
+
+  const loadSolicitudes = useCallback(async () => {
+    if (!isAuthenticated) return
+    setLoadingLista(true)
+    setErrorLista(null)
+    try {
+      const data = await getSolicitudes(filtroTipo || undefined, filtroEstado || undefined, 200)
+      setSolicitudes(data.map(mapSolicitud))
+    } catch (err) {
+      setErrorLista(err instanceof Error ? err.message : 'Error al cargar solicitudes')
+    } finally {
+      setLoadingLista(false)
+    }
+  }, [isAuthenticated, filtroTipo, filtroEstado])
+
+  useEffect(() => {
+    if (isAuthenticated) loadSolicitudes()
+  }, [isAuthenticated, loadSolicitudes])
 
   const handleBuscar = async (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -49,8 +89,16 @@ export default function SolicitudesPage() {
   }
 
   const handleSaved = () => {
-    setMensajeExito('Solicitud registrada correctamente. El equipo de coordinación la revisará pronto.')
+    setMensajeExito('Solicitud registrada correctamente.')
+    loadSolicitudes()
   }
+
+  const mapUrl = (puntoInteresId: string) =>
+    isAuthenticated
+      ? `/admin/map?centro=${encodeURIComponent(puntoInteresId)}`
+      : `/?centro=${encodeURIComponent(puntoInteresId)}`
+
+  const pendientes = solicitudes.filter((s) => s.estado === 'pendiente' || s.estado === 'en_busqueda').length
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,7 +112,9 @@ export default function SolicitudesPage() {
               Solicitudes
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Entidades estatales y municipales pueden registrar solicitudes de insumos e inspecciones de lugar.
+              {isAuthenticated
+                ? 'Busca insumos, registra solicitudes y gestiona la bandeja de seguimiento.'
+                : 'Consulta dónde hay insumos y registra solicitudes para el equipo de acopio.'}
             </p>
           </div>
           <div className="flex gap-2">
@@ -116,20 +166,20 @@ export default function SolicitudesPage() {
           </form>
 
           {busquedaRealizada && !buscando && resultados.length === 0 && (
-            <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-4 space-y-3">
+            <div className="rounded-lg border border-orange-500/30 bg-orange-500/5 p-4">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">No se encontró &quot;{busqueda}&quot; en ningún centro</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Puedes crear una solicitud para gestionarla con el equipo de coordinación.
+                    Puedes crear una solicitud para que el equipo la gestione.
                   </p>
                 </div>
               </div>
               <Button
                 size="sm"
                 onClick={() => abrirForm('insumo')}
-                className="bg-accent hover:bg-accent/90"
+                className="bg-accent hover:bg-accent/90 mt-3"
               >
                 Crear solicitud de insumo
               </Button>
@@ -170,9 +220,7 @@ export default function SolicitudesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() =>
-                        router.push(`/?centro=${encodeURIComponent(r.punto_interes_id)}`)
-                      }
+                      onClick={() => router.push(mapUrl(r.punto_interes_id))}
                     >
                       Ver mapa
                     </Button>
@@ -181,7 +229,7 @@ export default function SolicitudesPage() {
                       className="bg-accent hover:bg-accent/90"
                       onClick={() => abrirForm('insumo', r)}
                     >
-                      Registrar
+                      Solicitar
                     </Button>
                   </div>
                 </div>
@@ -189,6 +237,50 @@ export default function SolicitudesPage() {
             </div>
           )}
         </section>
+
+        {isAuthenticated && (
+          <section className="bg-card rounded-xl border border-border p-4 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="font-semibold">Solicitudes registradas</h2>
+                {pendientes > 0 && (
+                  <p className="text-xs text-orange-500 mt-0.5">
+                    {pendientes} pendiente{pendientes !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
+                  className="h-9 rounded-md border border-border bg-secondary px-2 text-xs"
+                >
+                  <option value="">Todos los tipos</option>
+                  <option value="insumo">Insumos</option>
+                  <option value="inspeccion">Inspecciones</option>
+                </select>
+                <select
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  className="h-9 rounded-md border border-border bg-secondary px-2 text-xs"
+                >
+                  <option value="">Todos los estados</option>
+                  {ESTADOS_SOLICITUD.map((e) => (
+                    <option key={e} value={e}>{estadoSolicitudLabels[e]}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {loadingLista ? (
+              <LoadingState />
+            ) : errorLista ? (
+              <ErrorState message={errorLista} onRetry={loadSolicitudes} />
+            ) : (
+              <SolicitudesList solicitudes={solicitudes} onRefresh={loadSolicitudes} />
+            )}
+          </section>
+        )}
       </main>
 
       <SolicitudFormDialog
