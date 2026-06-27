@@ -1,14 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Map, { MapRef, NavigationControl } from 'react-map-gl/maplibre'
+import Map, { MapRef, NavigationControl, Marker } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap, GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import PoiMarkers from './map/poi-markers'
 import Legend from './map/legend'
-import GeolocateControl from './map/geolocate-control'
+import MapFloatingControls from './map/map-floating-controls'
 import { PuntoInteres, ZonaAfectada, ConfigApp, CONFIG_APP } from '@/lib/mock-data'
+import { X } from 'lucide-react'
 
 interface InteractiveMapProps {
   puntos: PuntoInteres[]
@@ -16,6 +17,11 @@ interface InteractiveMapProps {
   config?: ConfigApp
   onPoiClick?: (punto: PuntoInteres) => void
   hideLegend?: boolean
+  reportPickMode?: boolean
+  onMapPick?: (lat: number, lng: number) => void
+  onReportPickCancel?: () => void
+  pickMarker?: { lat: number; lng: number } | null
+  onReportClick?: () => void
 }
 
 const HEATMAP_SOURCE = 'zonas-afectadas-source'
@@ -32,11 +38,23 @@ function buildHeatmapGeoJSON(zonas: ZonaAfectada[]): GeoJSON.FeatureCollection {
   }
 }
 
-export default function InteractiveMap({ puntos, zonas, config = CONFIG_APP, onPoiClick, hideLegend = false }: InteractiveMapProps) {
+export default function InteractiveMap({
+  puntos,
+  zonas,
+  config = CONFIG_APP,
+  onPoiClick,
+  hideLegend = false,
+  reportPickMode = false,
+  onMapPick,
+  onReportPickCancel,
+  pickMarker = null,
+  onReportClick,
+}: InteractiveMapProps) {
   const mapRef = useRef<MapRef>(null)
   const heatmapAddedRef = useRef(false)
   const geolocatedRef = useRef(false)
   const [mapLoaded, setMapLoaded] = useState(false)
+  const [locating, setLocating] = useState(false)
 
   useEffect(() => {
     if (!mapLoaded || geolocatedRef.current) return
@@ -63,54 +81,92 @@ export default function InteractiveMap({ puntos, zonas, config = CONFIG_APP, onP
     if (!mapRef.current) return
     const map = mapRef.current.getMap() as MapLibreMap
     if (!map) return
-
     const source = map.getSource(HEATMAP_SOURCE) as GeoJSONSource | undefined
-    if (source) {
-      source.setData(buildHeatmapGeoJSON(zonas))
+    if (source) source.setData(buildHeatmapGeoJSON(zonas))
+  }, [zonas])
+
+  const handleMapLoad = useCallback(
+    (e: { target: MapLibreMap }) => {
+      const map = e.target
+      if (heatmapAddedRef.current) return
+
+      map.addSource(HEATMAP_SOURCE, {
+        type: 'geojson',
+        data: buildHeatmapGeoJSON(zonas),
+      })
+
+      map.addLayer({
+        id: HEATMAP_LAYER,
+        type: 'heatmap',
+        source: HEATMAP_SOURCE,
+        paint: {
+          'heatmap-weight': ['get', 'intensidad'],
+          'heatmap-intensity': 0.6,
+          'heatmap-color': [
+            'interpolate',
+            ['linear'],
+            ['heatmap-density'],
+            0,
+            'rgba(0, 255, 0, 0)',
+            0.2,
+            'rgba(0, 255, 0, 0.5)',
+            0.4,
+            'rgba(255, 255, 0, 0.6)',
+            0.6,
+            'rgba(255, 165, 0, 0.7)',
+            0.8,
+            'rgba(255, 0, 0, 0.8)',
+            1,
+            'rgba(139, 0, 0, 0.9)',
+          ],
+          'heatmap-radius': 40,
+          'heatmap-opacity': 0.7,
+        },
+      })
+
+      heatmapAddedRef.current = true
+      setMapLoaded(true)
+    },
+    [zonas],
+  )
+
+  const handleGeolocate = useCallback(() => {
+    const map = mapRef.current?.getMap() as MapLibreMap | undefined
+    if (!map || locating) return
+    setLocating(true)
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          map.flyTo({
+            center: [pos.coords.longitude, pos.coords.latitude],
+            zoom: 14,
+            duration: 1500,
+          })
+          setLocating(false)
+        },
+        () => setLocating(false),
+        { enableHighAccuracy: true, timeout: 10000 },
+      )
+    } else {
+      setLocating(false)
     }
-  }, [zonas])
+  }, [locating])
 
-  const handleMapLoad = useCallback((e: { target: MapLibreMap }) => {
-    const map = e.target
-    if (heatmapAddedRef.current) return
-
-    map.addSource(HEATMAP_SOURCE, {
-      type: 'geojson',
-      data: buildHeatmapGeoJSON(zonas),
-    })
-
-    map.addLayer({
-      id: HEATMAP_LAYER,
-      type: 'heatmap',
-      source: HEATMAP_SOURCE,
-      paint: {
-        'heatmap-weight': ['get', 'intensidad'],
-        'heatmap-intensity': 0.6,
-        'heatmap-color': [
-          'interpolate',
-          ['linear'],
-          ['heatmap-density'],
-          0, 'rgba(0, 255, 0, 0)',
-          0.2, 'rgba(0, 255, 0, 0.5)',
-          0.4, 'rgba(255, 255, 0, 0.6)',
-          0.6, 'rgba(255, 165, 0, 0.7)',
-          0.8, 'rgba(255, 0, 0, 0.8)',
-          1, 'rgba(139, 0, 0, 0.9)',
-        ],
-        'heatmap-radius': 40,
-        'heatmap-opacity': 0.7,
-      },
-    })
-
-    heatmapAddedRef.current = true
-    setMapLoaded(true)
-  }, [zonas])
+  const handleMapClick = useCallback(
+    (e: maplibregl.MapMouseEvent) => {
+      if (reportPickMode && onMapPick) {
+        onMapPick(e.lngLat.lat, e.lngLat.lng)
+      }
+    },
+    [reportPickMode, onMapPick],
+  )
 
   const handlePoiClick = useCallback(
     (punto: PuntoInteres) => {
+      if (reportPickMode) return
       onPoiClick?.(punto)
     },
-    [onPoiClick],
+    [onPoiClick, reportPickMode],
   )
 
   return (
@@ -126,14 +182,48 @@ export default function InteractiveMap({ puntos, zonas, config = CONFIG_APP, onP
         style={{ width: '100%', height: '100%' }}
         mapStyle="https://tiles.openfreemap.org/styles/liberty"
         attributionControl={false}
+        cursor={reportPickMode ? 'crosshair' : 'grab'}
         onLoad={handleMapLoad}
+        onClick={handleMapClick}
       >
-        <PoiMarkers puntos={puntos} onPoiClick={handlePoiClick} />
-        <NavigationControl position="top-left" />
-        <GeolocateControl />
+        <PoiMarkers puntos={puntos} onPoiClick={handlePoiClick} disabled={reportPickMode} />
+        <NavigationControl position="bottom-right" showCompass={false} />
+        {pickMarker && (
+          <Marker longitude={pickMarker.lng} latitude={pickMarker.lat} anchor="center">
+            <div className="relative flex items-center justify-center">
+              <span className="absolute w-10 h-10 rounded-full bg-orange-500/30 animate-ping" />
+              <span className="relative w-5 h-5 rounded-full bg-orange-500 border-2 border-white shadow-lg" />
+            </div>
+          </Marker>
+        )}
       </Map>
-      <Legend hidden={hideLegend} />
-      <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 text-[9px] md:text-[10px] text-muted-foreground/60 bg-card/80 px-1.5 py-0.5 rounded z-20 pointer-events-none">
+
+      {reportPickMode && (
+        <div className="absolute top-2 inset-x-2 z-50 flex items-center gap-2 bg-orange-500 text-white rounded-xl px-3 py-2.5 shadow-lg text-sm">
+          <span className="flex-1 font-medium">Toca el mapa donde está la zona afectada</span>
+          <button
+            type="button"
+            onClick={onReportPickCancel}
+            className="p-1 rounded-md hover:bg-orange-600 shrink-0"
+            aria-label="Cancelar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {onReportClick && (
+        <MapFloatingControls
+          onReport={onReportClick}
+          onGeolocate={handleGeolocate}
+          locating={locating}
+          reportActive={reportPickMode}
+        />
+      )}
+
+      <Legend hidden={hideLegend || reportPickMode} />
+
+      <div className="absolute bottom-2 right-14 md:right-16 text-[9px] md:text-[10px] text-muted-foreground/60 bg-card/80 px-1.5 py-0.5 rounded z-20 pointer-events-none">
         © OpenFreeMap
       </div>
     </div>

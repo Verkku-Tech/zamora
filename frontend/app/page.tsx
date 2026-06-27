@@ -7,8 +7,6 @@ import PoiDetailSheet from '@/components/map/poi-detail-sheet'
 import ReporteDialog from '@/components/reporte-dialog'
 import { LoadingState, ErrorState } from '@/components/loading-state'
 import { useAppData } from '@/lib/hooks/use-app-data'
-import { AlertTriangle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 const InteractiveMap = dynamic(() => import('@/components/interactive-map'), {
   ssr: false,
@@ -19,13 +17,39 @@ export default function Page() {
   const { puntos, zonas, insumosByCentro, config, loading, error, refresh } = useAppData()
   const [selectedPoiId, setSelectedPoiId] = useState<string | null>(null)
   const [showSupplies, setShowSupplies] = useState(false)
-  const [showReporte, setShowReporte] = useState(false)
+  const [reportPickMode, setReportPickMode] = useState(false)
+  const [reportCoords, setReportCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [showReporteForm, setShowReporteForm] = useState(false)
 
   const selectedPoi = selectedPoiId ? puntos.find((p) => p.id === selectedPoiId) ?? null : null
 
   const handleClosePoi = () => {
     setSelectedPoiId(null)
     setShowSupplies(false)
+  }
+
+  const startReport = () => {
+    setReportPickMode(true)
+    setShowReporteForm(false)
+    setReportCoords(null)
+    setSelectedPoiId(null)
+    setShowSupplies(false)
+  }
+
+  const cancelReportPick = () => {
+    setReportPickMode(false)
+    setReportCoords(null)
+  }
+
+  const handleMapPick = (lat: number, lng: number) => {
+    setReportCoords({ lat, lng })
+    setReportPickMode(false)
+    setShowReporteForm(true)
+  }
+
+  const handleReportDone = () => {
+    setReportCoords(null)
+    refresh()
   }
 
   if (loading) {
@@ -56,22 +80,18 @@ export default function Page() {
           zonas={zonas}
           config={config}
           hideLegend={!!selectedPoi}
+          reportPickMode={reportPickMode}
+          onMapPick={handleMapPick}
+          onReportPickCancel={cancelReportPick}
+          pickMarker={reportCoords}
+          onReportClick={startReport}
           onPoiClick={(poi) => {
             setSelectedPoiId(poi.id)
             setShowSupplies(false)
           }}
         />
 
-        <Button
-          onClick={() => setShowReporte(true)}
-          size="sm"
-          className="absolute left-2 top-2 md:left-4 md:top-4 z-40 bg-orange-500 hover:bg-orange-600 text-white shadow-lg h-9 px-2.5 md:h-10 md:px-4"
-        >
-          <AlertTriangle className="w-4 h-4" />
-          <span className="hidden sm:inline ml-1.5">Reportar zona</span>
-        </Button>
-
-        {selectedPoi && (
+        {selectedPoi && !reportPickMode && (
           <PoiDetailSheet
             poi={selectedPoi}
             insumos={insumosByCentro[selectedPoi.id] || []}
@@ -82,13 +102,18 @@ export default function Page() {
         )}
       </div>
 
-      <ReporteDialog
-        open={showReporte}
-        onClose={() => setShowReporte(false)}
-        onReported={refresh}
-        latitud={config.ubicacion_predeterminada.latitud}
-        longitud={config.ubicacion_predeterminada.longitud}
-      />
+      {showReporteForm && reportCoords && (
+        <ReporteDialog
+          open={showReporteForm}
+          onClose={() => {
+            setShowReporteForm(false)
+            setReportCoords(null)
+          }}
+          onReported={handleReportDone}
+          latitud={reportCoords.lat}
+          longitud={reportCoords.lng}
+        />
+      )}
     </div>
   )
 }
