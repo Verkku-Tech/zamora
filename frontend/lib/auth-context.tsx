@@ -6,9 +6,14 @@ import { login as apiLogin, ApiError } from './api-client'
 interface AuthContextType {
   isAuthenticated: boolean
   userEmail: string | null
+  userName: string | null
+  role: string | null
+  permisos: Record<string, string[]>
+  accesoGlobal: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   getToken: () => string | null
+  tienePermiso: (modulo: string, accion: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -16,13 +21,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
+  const [role, setRole] = useState<string | null>(null)
+  const [permisos, setPermisos] = useState<Record<string, string[]>>({})
+  const [accesoGlobal, setAccesoGlobal] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token')
-    const email = localStorage.getItem('auth_user')
-    if (token && email) {
-      setUserEmail(email)
-      setIsAuthenticated(true)
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        setUserEmail(payload.email ?? null)
+        setUserName(payload.nombre ?? null)
+        setRole(payload.role ?? null)
+        setPermisos(typeof payload.permisos === 'string' ? JSON.parse(payload.permisos) : (payload.permisos ?? {}))
+        setAccesoGlobal(payload.acceso_global === 'true')
+        setIsAuthenticated(true)
+      } catch {
+        localStorage.removeItem('auth_token')
+      }
     }
   }, [])
 
@@ -30,8 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await apiLogin(email, password)
       localStorage.setItem('auth_token', res.token)
-      localStorage.setItem('auth_user', res.email)
       setUserEmail(res.email)
+      setUserName(res.nombre)
+      setRole(res.role)
+      setPermisos(res.permisos)
+      setAccesoGlobal(res.accesoGlobal)
       setIsAuthenticated(true)
     } catch (err) {
       if (err instanceof ApiError) throw new Error(err.message)
@@ -41,8 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
     setUserEmail(null)
+    setUserName(null)
+    setRole(null)
+    setPermisos({})
+    setAccesoGlobal(false)
     setIsAuthenticated(false)
   }, [])
 
@@ -51,8 +74,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return localStorage.getItem('auth_token')
   }, [])
 
+  const tienePermiso = useCallback((modulo: string, accion: string) => {
+    return permisos[modulo]?.includes(accion) ?? false
+  }, [permisos])
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, login, logout, getToken }}>
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, userName, role, permisos, accesoGlobal, login, logout, getToken, tienePermiso }}>
       {children}
     </AuthContext.Provider>
   )
@@ -60,9 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
   return context
 }
 

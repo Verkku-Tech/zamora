@@ -52,6 +52,10 @@ async function request<T>(
 export interface LoginResponse {
   token: string
   email: string
+  nombre: string
+  role: string
+  permisos: Record<string, string[]>
+  accesoGlobal: boolean
   expiresAt: string
 }
 
