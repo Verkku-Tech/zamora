@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import Map, { Marker, NavigationControl } from 'react-map-gl/maplibre'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import Map, { Marker, NavigationControl, MapRef } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Button } from '@/components/ui/button'
 import MapPickHint from './map-pick-hint'
+import UseCurrentLocationButton from './use-current-location-button'
 import { ConfigApp, CONFIG_APP } from '@/lib/mock-data'
 
 interface LocationPickerMapProps {
@@ -27,6 +28,7 @@ export default function LocationPickerMap({
 }: LocationPickerMapProps) {
   const defaultLat = config.ubicacion_predeterminada.latitud
   const defaultLng = config.ubicacion_predeterminada.longitud
+  const mapRef = useRef<MapRef>(null)
 
   const [point, setPoint] = useState<{ lat: number; lng: number } | null>(null)
 
@@ -43,6 +45,11 @@ export default function LocationPickerMap({
     setPoint({ lat: e.lngLat.lat, lng: e.lngLat.lng })
   }, [])
 
+  const handleCurrentLocation = useCallback((lat: number, lng: number) => {
+    setPoint({ lat, lng })
+    mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 1000 })
+  }, [])
+
   if (!open) return null
 
   const centerLat = point?.lat ?? initialLat ?? defaultLat
@@ -52,7 +59,12 @@ export default function LocationPickerMap({
     <div className="fixed inset-0 z-[60] bg-background cursor-crosshair">
       <MapPickHint message="Haz clic en el mapa para marcar la ubicación" onCancel={onCancel} />
 
+      <div className="absolute top-3 right-3 z-50">
+        <UseCurrentLocationButton iconOnly onLocated={handleCurrentLocation} />
+      </div>
+
       <Map
+        ref={mapRef}
         mapLib={maplibregl}
         initialViewState={{
           longitude: centerLng,

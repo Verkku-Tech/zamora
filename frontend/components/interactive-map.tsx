@@ -9,6 +9,7 @@ import PoiMarkers from './map/poi-markers'
 import Legend from './map/legend'
 import MapFloatingControls from './map/map-floating-controls'
 import MapPickHint from './map/map-pick-hint'
+import { getCurrentPosition } from '@/lib/geolocation'
 import { PuntoInteres, ZonaAfectada, ConfigApp, CONFIG_APP } from '@/lib/mock-data'
 
 interface InteractiveMapProps {
@@ -104,6 +105,7 @@ export default function InteractiveMap({
   const geolocatedRef = useRef(false)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [locating, setLocating] = useState(false)
+  const [locatingReport, setLocatingReport] = useState(false)
 
   const resizeMap = useCallback(() => {
     const map = mapRef.current?.getMap() as MapLibreMap | undefined
@@ -181,27 +183,34 @@ export default function InteractiveMap({
     [zonas, resizeMap],
   )
 
-  const handleGeolocate = useCallback(() => {
+  const handleGeolocate = useCallback(async () => {
     const map = mapRef.current?.getMap() as MapLibreMap | undefined
     if (!map || locating) return
     setLocating(true)
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          map.flyTo({
-            center: [pos.coords.longitude, pos.coords.latitude],
-            zoom: 14,
-            duration: 1500,
-          })
-          setLocating(false)
-        },
-        () => setLocating(false),
-        { enableHighAccuracy: true, timeout: 10000 },
-      )
-    } else {
+    try {
+      const { lat, lng } = await getCurrentPosition()
+      map.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 })
+    } catch {
+      /* permiso denegado u otro error */
+    } finally {
       setLocating(false)
     }
   }, [locating])
+
+  const handleReportCurrentLocation = useCallback(async () => {
+    if (!reportPickMode || !onMapPick || locatingReport) return
+    setLocatingReport(true)
+    try {
+      const { lat, lng } = await getCurrentPosition()
+      onMapPick(lat, lng)
+      const map = mapRef.current?.getMap() as MapLibreMap | undefined
+      map?.flyTo({ center: [lng, lat], zoom: 15, duration: 1000 })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'No se pudo obtener la ubicación')
+    } finally {
+      setLocatingReport(false)
+    }
+  }, [reportPickMode, onMapPick, locatingReport])
 
   const handleMapClick = useCallback(
     (e: maplibregl.MapMouseEvent) => {
@@ -252,7 +261,12 @@ export default function InteractiveMap({
       </Map>
 
       {reportPickMode && onReportPickCancel && (
-        <MapPickHint message={pickHint} onCancel={onReportPickCancel} />
+        <MapPickHint
+          message={pickHint}
+          onCancel={onReportPickCancel}
+          onUseCurrentLocation={onMapPick ? handleReportCurrentLocation : undefined}
+          locatingCurrent={locatingReport}
+        />
       )}
 
       {onReportClick && (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import LocationPickerMap from '@/components/map/location-picker-map'
+import UseCurrentLocationButton from '@/components/map/use-current-location-button'
 import {
   PuntoInteres,
   Insumo,
@@ -216,6 +217,7 @@ export default function CentroFormDialog({
                   <span className="text-sm font-mono flex-1 min-w-0 truncate">
                     {form.latitud.toFixed(5)}, {form.longitud.toFixed(5)}
                   </span>
+                  <UseCurrentLocationButton onLocated={handleLocationConfirm} disabled={geocoding} />
                   <Button
                     type="button"
                     variant="outline"
@@ -226,15 +228,18 @@ export default function CentroFormDialog({
                   </Button>
                 </div>
               ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowLocationPicker(true)}
-                  className="w-full mt-1 h-10 gap-2 border-dashed"
-                >
-                  <MapPin className="w-4 h-4 text-accent" />
-                  Seleccionar en el mapa
-                </Button>
+                <div className="mt-1 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowLocationPicker(true)}
+                    className="flex-1 h-10 gap-2 border-dashed"
+                  >
+                    <MapPin className="w-4 h-4 text-accent" />
+                    Seleccionar en el mapa
+                  </Button>
+                  <UseCurrentLocationButton onLocated={handleLocationConfirm} disabled={geocoding} className="h-10 shrink-0" />
+                </div>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 Marca el punto exacto del centro, igual que al reportar una zona.
