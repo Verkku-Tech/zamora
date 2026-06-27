@@ -12,7 +12,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U postgres -d fuerzacivil"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 12
+      start_period: 30s
 
   api:
     build:
@@ -36,8 +37,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 8
+      start_period: 90s
 
   web:
     build:

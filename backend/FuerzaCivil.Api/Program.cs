@@ -71,14 +71,27 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    try
+
+    const int maxRetries = 30;
+    for (var attempt = 1; attempt <= maxRetries; attempt++)
     {
-        db.Database.Migrate();
-        SeedData.Initialize(db);
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Error al migrar o inicializar la base de datos");
+        try
+        {
+            db.Database.Migrate();
+            SeedData.Initialize(db);
+            logger.LogInformation("Base de datos migrada e inicializada correctamente");
+            break;
+        }
+        catch (Exception ex) when (attempt < maxRetries)
+        {
+            logger.LogWarning(ex, "DB no lista (intento {Attempt}/{Max}), reintentando en 3s...", attempt, maxRetries);
+            Thread.Sleep(TimeSpan.FromSeconds(3));
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, "No se pudo migrar la base de datos tras {Max} intentos", maxRetries);
+            throw;
+        }
     }
 }
 
