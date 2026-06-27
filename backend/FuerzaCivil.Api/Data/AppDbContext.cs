@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     public DbSet<PuntoInteres> PuntosInteres => Set<PuntoInteres>();
     public DbSet<Insumo> Insumos => Set<Insumo>();
     public DbSet<Donacion> Donaciones => Set<Donacion>();
+    public DbSet<Solicitud> Solicitudes => Set<Solicitud>();
     public DbSet<ZonaAfectada> ZonasAfectadas => Set<ZonaAfectada>();
     public DbSet<ConfigApp> ConfigApp => Set<ConfigApp>();
 
@@ -45,6 +46,22 @@ public class AppDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.InsumoId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Solicitud>(entity =>
+        {
+            entity.ToTable("solicitudes");
+            entity.HasIndex(e => e.Tipo);
+            entity.HasIndex(e => e.Estado);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasOne(e => e.PuntoInteres)
+                  .WithMany()
+                  .HasForeignKey(e => e.PuntoInteresId)
+                  .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Insumo)
+                  .WithMany()
+                  .HasForeignKey(e => e.InsumoId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ZonaAfectada>(entity =>

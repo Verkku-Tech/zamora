@@ -229,6 +229,139 @@ export function registrarDonacion(data: CreateDonacionPayload) {
   })
 }
 
+// ── Solicitudes ──
+
+export interface SolicitudApi {
+  id: string
+  tipo: string
+  titulo: string
+  descripcion: string | null
+  productoNombre: string | null
+  categoria: string | null
+  cantidadSolicitada: number | null
+  unidad: string | null
+  solicitante: string | null
+  telefonoSolicitante: string | null
+  direccion: string | null
+  prioridad: string
+  estado: string
+  puntoInteresId: string | null
+  puntoNombre: string | null
+  puntoTipo: string | null
+  insumoId: string | null
+  notasInternas: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface InsumoBusquedaApi {
+  insumoId: string
+  productoNombre: string
+  categoria: string
+  cantidadDisponible: number
+  cantidadNecesaria: number
+  unidad: string | null
+  puntoInteresId: string
+  puntoNombre: string
+  puntoTipo: string
+  puntoDireccion: string | null
+  puntoCiudad: string | null
+}
+
+export interface CreateSolicitudPayload {
+  tipo: string
+  titulo: string
+  descripcion?: string
+  productoNombre?: string
+  categoria?: string
+  cantidadSolicitada?: number
+  unidad?: string
+  solicitante?: string
+  telefonoSolicitante?: string
+  direccion?: string
+  prioridad?: string
+  puntoInteresId?: string
+  insumoId?: string
+  notasInternas?: string
+}
+
+export type UpdateSolicitudPayload = Partial<
+  Omit<CreateSolicitudPayload, 'tipo'> & { estado: string }
+>
+
+export function getSolicitudes(tipo?: string, estado?: string, limit = 100) {
+  const params = new URLSearchParams()
+  if (tipo) params.set('tipo', tipo)
+  if (estado) params.set('estado', estado)
+  params.set('limit', String(limit))
+  const qs = params.toString()
+  return request<SolicitudApi[]>(`/Solicitudes${qs ? `?${qs}` : ''}`)
+}
+
+export function buscarInsumos(q: string) {
+  const params = new URLSearchParams({ q })
+  return request<InsumoBusquedaApi[]>(`/Solicitudes/buscar-insumos?${params}`)
+}
+
+export function createSolicitud(data: CreateSolicitudPayload) {
+  return request<SolicitudApi>('/Solicitudes', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateSolicitud(id: string, data: UpdateSolicitudPayload) {
+  return request<SolicitudApi>(`/Solicitudes/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteSolicitud(id: string) {
+  return request<void>(`/Solicitudes/${id}`, { method: 'DELETE' })
+}
+
+export function mapSolicitud(s: SolicitudApi): import('./solicitudes-config').Solicitud {
+  return {
+    id: s.id,
+    tipo: s.tipo as import('./solicitudes-config').Solicitud['tipo'],
+    titulo: s.titulo,
+    descripcion: s.descripcion ?? '',
+    producto_nombre: s.productoNombre ?? '',
+    categoria: s.categoria ?? '',
+    cantidad_solicitada: s.cantidadSolicitada,
+    unidad: s.unidad ?? '',
+    solicitante: s.solicitante ?? '',
+    telefono_solicitante: s.telefonoSolicitante ?? '',
+    direccion: s.direccion ?? '',
+    prioridad: s.prioridad as import('./mock-data').PrioridadInsumo,
+    estado: s.estado as import('./solicitudes-config').EstadoSolicitud,
+    punto_interes_id: s.puntoInteresId,
+    punto_nombre: s.puntoNombre,
+    punto_tipo: s.puntoTipo,
+    insumo_id: s.insumoId,
+    notas_internas: s.notasInternas ?? '',
+    created_at: s.createdAt,
+    updated_at: s.updatedAt,
+  }
+}
+
+export function mapInsumoBusqueda(i: InsumoBusquedaApi): import('./solicitudes-config').InsumoBusqueda {
+  return {
+    insumo_id: i.insumoId,
+    producto_nombre: i.productoNombre,
+    categoria: i.categoria,
+    cantidad_disponible: i.cantidadDisponible,
+    cantidad_necesaria: i.cantidadNecesaria,
+    unidad: i.unidad ?? '',
+    punto_interes_id: i.puntoInteresId,
+    punto_nombre: i.puntoNombre,
+    punto_tipo: i.puntoTipo,
+    punto_direccion: i.puntoDireccion ?? '',
+    punto_ciudad: i.puntoCiudad ?? '',
+  }
+}
+
 // ── Zonas afectadas ──
 
 export interface ZonaAfectadaApi {
