@@ -1,8 +1,10 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using FuerzaCivil.Api.Data;
 
@@ -60,7 +62,10 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection")!,
+        name: "postgres",
+        tags: ["ready"]);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -72,7 +77,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    const int maxRetries = 30;
+    // DB ya está healthy vía depends_on; reintentos cortos por si acaso
+    const int maxRetries = 10;
     for (var attempt = 1; attempt <= maxRetries; attempt++)
     {
         try
@@ -84,8 +90,8 @@ using (var scope = app.Services.CreateScope())
         }
         catch (Exception ex) when (attempt < maxRetries)
         {
-            logger.LogWarning(ex, "DB no lista (intento {Attempt}/{Max}), reintentando en 3s...", attempt, maxRetries);
-            Thread.Sleep(TimeSpan.FromSeconds(3));
+            logger.LogWarning(ex, "DB no lista (intento {Attempt}/{Max}), reintentando en 2s...", attempt, maxRetries);
+            Thread.Sleep(TimeSpan.FromSeconds(2));
         }
         catch (Exception ex)
         {
@@ -102,6 +108,21 @@ app.UseCors("Frontend");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHealthChecks("/health");
+
+// Liveness: solo confirma que Kestrel responde (usado por Docker healthcheck)
+app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));
+
+// Readiness: incluye PostgreSQL
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable,
+    },
+});
+
 app.MapControllers();
 app.Run();
